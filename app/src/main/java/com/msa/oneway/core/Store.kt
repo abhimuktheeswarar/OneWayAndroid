@@ -19,7 +19,7 @@ abstract class Store<S : State>(
     private val actions = LinkedBlockingQueue<Action>()
 
     var state: S = initialState
-        protected set
+        private set
 
     @Synchronized
     fun dispatch(action: Action) {

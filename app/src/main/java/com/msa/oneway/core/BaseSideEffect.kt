@@ -32,4 +32,7 @@ abstract class BaseSideEffect(
     fun dispatch(action: Action) {
         store.dispatch(action)
     }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <S : State> state(): S = store.state as S
 }
