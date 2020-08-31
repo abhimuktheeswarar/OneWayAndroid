@@ -16,5 +16,5 @@ class TestStateHandler<S : State>(
         println("handle state = $state")
     }
 
-    override fun getStateThreadExecutor(): ThreadExecutor? = threadExecutorService
+    override fun getStateThreadExecutor(): ThreadExecutor = threadExecutorService
 }

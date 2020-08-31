@@ -1,6 +1,5 @@
 package com.msa.oneway.core
 
-import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -11,26 +10,26 @@ interface SideEffect : ActionSubscriber
 
 interface StateHandler<in S : State> : StateSubscriber<S>
 
-interface ActionSubscriber : CoroutineScope {
+interface ActionSubscriber {
 
     fun onNext(action: Action) {
-        getActionThreadExecutor()?.execute { handle(action) } ?: handle(action)
+        getActionThreadExecutor().execute { handle(action) }
     }
 
     fun handle(action: Action)
 
-    fun getActionThreadExecutor(): ThreadExecutor?
+    fun getActionThreadExecutor(): ThreadExecutor
 }
 
 interface StateSubscriber<in S> {
 
     fun onNext(state: S) {
-        getStateThreadExecutor()?.execute { handle(state) } ?: handle(state)
+        getStateThreadExecutor().execute { handle(state) }
     }
 
     fun handle(state: S)
 
-    fun getStateThreadExecutor(): ThreadExecutor?
+    fun getStateThreadExecutor(): ThreadExecutor
 }
 
 fun CopyOnWriteArrayList<SideEffect>.dispatch(action: Action) {

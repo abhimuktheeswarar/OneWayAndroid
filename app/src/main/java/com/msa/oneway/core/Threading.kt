@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import io.reactivex.Scheduler
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
@@ -19,7 +21,7 @@ interface ThreadExecutor {
     fun execute(block: () -> Unit)
 }
 
-abstract class ThreadExecutorService(open val executorService: Executor) : ThreadExecutor {
+abstract class ThreadExecutorService(private val executorService: Executor) : ThreadExecutor {
     override fun execute(block: () -> Unit) {
         executorService.execute { block() }
     }
@@ -92,5 +94,13 @@ open class CoroutineDispatcherProvider(val coroutineContext: CoroutineContext) {
     open val IO: CoroutineContext by lazy { Dispatchers.IO }
     open val Default: CoroutineContext by lazy { Dispatchers.Default }
     open val Unconfined: CoroutineContext by lazy { Dispatchers.Unconfined }
-
 }
+
+
+open class SchedulerProvider(scheduler: Scheduler) {
+
+    open val main: Scheduler by lazy { scheduler }
+    open val io: Scheduler by lazy { Schedulers.io() }
+    open val computation: Scheduler by lazy { Schedulers.computation() }
+}
+

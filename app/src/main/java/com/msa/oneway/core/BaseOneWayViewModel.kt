@@ -17,7 +17,7 @@ import kotlin.coroutines.CoroutineContext
 abstract class BaseOneWayViewModel<S : State>(
     private val store: Store<S>,
     private val mainThread: ThreadExecutor,
-    override val coroutineContext: CoroutineContext,
+    private val coroutineContext: CoroutineContext,
     private val compositeDisposable: CompositeDisposable?
 ) : ViewModel(), StateHandler<S>, SideEffect {
 

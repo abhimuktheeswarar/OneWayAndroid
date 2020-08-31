@@ -78,13 +78,14 @@ class GetTodoListSideEffectTest {
         val coroutineDispatcherProvider =
             TestCoroutineDispatcherProvider(testCoroutineRule.testCoroutineDispatcher)
 
+        val schedulerProvider = TestSchedulerProvider(scheduler)
+
         GetTodoListRxSideEffect(
             store = store,
             todoRepository = todoRepository,
             resourceRepository = resourceRepository,
-            scheduler = scheduler,
             threadExecutorService = threadExecutorService,
-            coroutineDispatcherProvider = coroutineDispatcherProvider,
+            schedulerProvider = schedulerProvider,
             compositeDisposable = compositeDisposable
         )
 
@@ -92,13 +93,11 @@ class GetTodoListSideEffectTest {
             store = store,
             todoRepository = todoRepository,
             resourceRepository = resourceRepository,
-            scheduler = scheduler,
             threadExecutorService = threadExecutorService,
-            coroutineDispatcherProvider = coroutineDispatcherProvider,
-            compositeDisposable = compositeDisposable
+            coroutineDispatcherProvider = coroutineDispatcherProvider
         )
 
-        TestActionListenerSideEffect(store, threadExecutorService, coroutineDispatcherProvider)
+        TestActionListenerSideEffect(store, threadExecutorService)
         TestStateHandler(store, threadExecutorService)
     }
 

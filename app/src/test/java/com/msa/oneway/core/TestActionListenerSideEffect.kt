@@ -5,9 +5,8 @@ package com.msa.oneway.core
  */
 class TestActionListenerSideEffect(
     store: Store<*>,
-    threadExecutorService: ThreadExecutorService,
-    coroutineDispatcherProvider: CoroutineDispatcherProvider
-) : BaseSideEffect(store, threadExecutorService, coroutineDispatcherProvider) {
+    threadExecutorService: ThreadExecutorService
+) : BaseSideEffect(store, threadExecutorService) {
 
     override fun handle(action: Action) {
         println("handle action = ${action.javaClass.simpleName}")

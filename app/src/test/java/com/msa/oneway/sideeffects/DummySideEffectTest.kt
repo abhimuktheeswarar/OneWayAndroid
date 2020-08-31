@@ -16,6 +16,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.reactivex.Single
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.TestObserver
 import io.reactivex.schedulers.TestScheduler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,6 +46,9 @@ class DummySideEffectTest {
     private val threadExecutor by lazy { CurrentThreadExecutor() }
     private val threadExecutorService by lazy { TestThreadExecutorService(threadExecutor) }
     private val scheduler by lazy { TestScheduler() }
+    private val schedulerProvider by lazy { TestSchedulerProvider(scheduler) }
+    private val compositeDisposable by lazy { CompositeDisposable() }
+
 
     private val store by lazy { HomeStore(HomeScreenState(), threadExecutorService) }
 
@@ -75,7 +79,7 @@ class DummySideEffectTest {
             coroutineDispatcherProvider = coroutineDispatcherProvider
         )
 
-        TestActionListenerSideEffect(store, threadExecutorService, coroutineDispatcherProvider)
+        TestActionListenerSideEffect(store, threadExecutorService)
         TestStateHandler(store, threadExecutorService)
     }
 
@@ -107,7 +111,11 @@ class DummyCoroutineSideEffect(
     store: Store<*>,
     threadExecutorService: ThreadExecutorService,
     coroutineDispatcherProvider: CoroutineDispatcherProvider
-) : BaseSideEffect(store, threadExecutorService, coroutineDispatcherProvider) {
+) : BaseCoroutineSideEffect(
+    store,
+    threadExecutorService,
+    coroutineDispatcherProvider
+) {
 
     override fun handle(action: Action) {
         println("DummyCoroutineSideEffect handle action = ${action.javaClass.simpleName}")

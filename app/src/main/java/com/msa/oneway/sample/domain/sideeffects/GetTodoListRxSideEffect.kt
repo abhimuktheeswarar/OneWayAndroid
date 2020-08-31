@@ -5,9 +5,7 @@ import com.msa.oneway.common.network.NetworkResponse
 import com.msa.oneway.core.*
 import com.msa.oneway.sample.data.TodoRepository
 import com.msa.oneway.sample.entities.TodoAction
-import io.reactivex.Scheduler
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 
 /**
  * Created by Abhi Muktheeswarar on 20-August-2020
@@ -17,11 +15,15 @@ class GetTodoListRxSideEffect(
     store: Store<*>,
     private val todoRepository: TodoRepository,
     private val resourceRepository: ResourceRepository,
-    private val scheduler: Scheduler,
-    private val threadExecutorService: ThreadExecutorService,
-    coroutineDispatcherProvider: CoroutineDispatcherProvider,
+    threadExecutorService: ThreadExecutorService,
+    schedulerProvider: SchedulerProvider,
     compositeDisposable: CompositeDisposable
-) : BaseSideEffect(store, threadExecutorService, coroutineDispatcherProvider, compositeDisposable) {
+) : BaseRxSideEffect(
+    store,
+    threadExecutorService,
+    schedulerProvider,
+    compositeDisposable
+) {
 
     override fun handle(action: Action) {
         if (action !is TodoAction.GetTodoListRxAction) {
@@ -29,7 +31,7 @@ class GetTodoListRxSideEffect(
         }
 
         addDisposable(todoRepository.getTodoListRx()
-            .subscribeOn(scheduler)
+            .subscribeOn(schedulerProvider.io)
             .map { response ->
 
                 when (response) {
@@ -49,7 +51,7 @@ class GetTodoListRxSideEffect(
                 }
             }
             .onErrorReturn { Result.failure(it) }
-            .observeOn(Schedulers.from(threadExecutorService.executorService))
+            .observeOn(schedulerProvider.main)
             .subscribe { result ->
 
                 result.fold({ response ->

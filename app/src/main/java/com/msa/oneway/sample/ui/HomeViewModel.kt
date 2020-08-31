@@ -33,30 +33,26 @@ class HomeViewModel(
 
             val threadExecutorService = SideEffectThreadService()
             val mainThread = MainThread(WeakReference(context))
-            val scheduler = Schedulers.io()
             val coroutineContext = CoroutineScopeProvider.getOneWayViewModelCoroutineContext()
             val coroutineDispatcherProvider = CoroutineDispatcherProvider(coroutineContext)
+            val schedulerProvider = SchedulerProvider(Schedulers.from(ExecutorServices.sideEffect))
             val compositeDisposable = CompositeDisposable()
 
             GetTodoListRxSideEffect(
                 store,
                 todoRepository,
                 resourceRepository,
-                scheduler,
                 threadExecutorService,
-                coroutineDispatcherProvider,
+                schedulerProvider,
                 compositeDisposable
             )
             GetTodoListCoroutineSideEffect(
                 store,
                 todoRepository,
                 resourceRepository,
-                scheduler,
                 threadExecutorService,
-                coroutineDispatcherProvider,
-                compositeDisposable
+                coroutineDispatcherProvider
             )
-
 
             return HomeViewModel(
                 store,

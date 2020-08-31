@@ -4,8 +4,6 @@ import com.msa.oneway.common.ResourceRepository
 import com.msa.oneway.core.*
 import com.msa.oneway.sample.data.TodoRepository
 import com.msa.oneway.sample.entities.TodoAction
-import io.reactivex.Scheduler
-import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 
@@ -17,11 +15,13 @@ class GetTodoListCoroutineSideEffect(
     store: Store<*>,
     private val todoRepository: TodoRepository,
     private val resourceRepository: ResourceRepository,
-    private val scheduler: Scheduler,
     threadExecutorService: ThreadExecutorService,
-    coroutineDispatcherProvider: CoroutineDispatcherProvider,
-    compositeDisposable: CompositeDisposable
-) : BaseSideEffect(store, threadExecutorService, coroutineDispatcherProvider, compositeDisposable) {
+    coroutineDispatcherProvider: CoroutineDispatcherProvider
+) : BaseCoroutineSideEffect(
+    store,
+    threadExecutorService,
+    coroutineDispatcherProvider
+) {
 
     override fun handle(action: Action) {
         if (action !is TodoAction.GetTodoListCoroutineAction) {
