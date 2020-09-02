@@ -31,7 +31,8 @@ class GetTodoListRxSideEffect(
         }
 
         addDisposable(todoRepository.getTodoListRx()
-            .subscribeOn(schedulerProvider.io)
+            .subscribeOn(schedulerProvider.current)
+            .observeOn(schedulerProvider.current)
             .map { response ->
 
                 when (response) {
@@ -51,7 +52,6 @@ class GetTodoListRxSideEffect(
                 }
             }
             .onErrorReturn { Result.failure(it) }
-            .observeOn(schedulerProvider.main)
             .subscribe { result ->
 
                 result.fold({ response ->

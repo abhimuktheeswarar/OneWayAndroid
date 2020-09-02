@@ -2,7 +2,6 @@ package com.msa.oneway.core
 
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -13,8 +12,9 @@ import kotlin.coroutines.CoroutineContext
 class TestCoroutineDispatcherProvider(coroutineContext: CoroutineContext) :
     CoroutineDispatcherProvider(coroutineContext) {
 
-    override val Main: CoroutineContext = TestCoroutineDispatcher()
-    override val IO: CoroutineContext = TestCoroutineDispatcher()
-    override val Default: CoroutineContext = TestCoroutineDispatcher()
-    override val Unconfined: CoroutineContext = TestCoroutineDispatcher()
+    override val Current: CoroutineContext = coroutineContext
+    override val Main: CoroutineContext = coroutineContext
+    override val IO: CoroutineContext = coroutineContext
+    override val Default: CoroutineContext = coroutineContext
+    override val Unconfined: CoroutineContext = coroutineContext
 }

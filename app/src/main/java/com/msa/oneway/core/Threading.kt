@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
@@ -90,7 +91,8 @@ object CoroutineScopeProvider {
 @Suppress("PropertyName")
 open class CoroutineDispatcherProvider(val coroutineContext: CoroutineContext) {
 
-    open val Main: CoroutineContext by lazy { Dispatchers.Default }
+    open val Current: CoroutineContext by lazy { coroutineContext }
+    open val Main: CoroutineContext by lazy { Dispatchers.Main }
     open val IO: CoroutineContext by lazy { Dispatchers.IO }
     open val Default: CoroutineContext by lazy { Dispatchers.Default }
     open val Unconfined: CoroutineContext by lazy { Dispatchers.Unconfined }
@@ -99,8 +101,9 @@ open class CoroutineDispatcherProvider(val coroutineContext: CoroutineContext) {
 
 open class SchedulerProvider(scheduler: Scheduler) {
 
-    open val main: Scheduler by lazy { scheduler }
+    open val current: Scheduler by lazy { scheduler }
     open val io: Scheduler by lazy { Schedulers.io() }
     open val computation: Scheduler by lazy { Schedulers.computation() }
+    open val main: Scheduler by lazy { AndroidSchedulers.mainThread() }
 }
 

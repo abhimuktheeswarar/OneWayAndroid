@@ -8,7 +8,8 @@ import io.reactivex.Scheduler
 
 class TestSchedulerProvider(scheduler: Scheduler) : SchedulerProvider(scheduler) {
 
-    override val main: Scheduler by lazy { scheduler }
+    override val current: Scheduler by lazy { scheduler }
     override val io: Scheduler by lazy { scheduler }
     override val computation: Scheduler by lazy { scheduler }
+    override val main: Scheduler by lazy { scheduler }
 }

@@ -124,7 +124,7 @@ class DummyCoroutineSideEffect(
             return
         }
 
-        launch {
+        launch(coroutineDispatcherProvider.IO) {
             println("start")
             delay(500)
             dispatch(TodoAction.SetCountAction(2))

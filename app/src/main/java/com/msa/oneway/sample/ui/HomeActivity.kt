@@ -55,7 +55,7 @@ class HomeActivity : AppCompatActivity() {
             Log.d(tag, "count = $count")
         })*/
 
-        dispatch(TodoAction.GetTodoListCoroutineAction)
+        dispatch(TodoAction.GetTodoListRxAction)
         dispatch(ShowToastAction("Welcome to OneWay"))
     }
 
