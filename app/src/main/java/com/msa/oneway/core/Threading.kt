@@ -12,6 +12,7 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -24,7 +25,11 @@ interface ThreadExecutor {
 
 abstract class ThreadExecutorService(private val executorService: Executor) : ThreadExecutor {
     override fun execute(block: () -> Unit) {
-        executorService.execute { block() }
+        try {
+            executorService.execute { block() }
+        } catch (e: RejectedExecutionException) {
+            e.printStackTrace()
+        }
     }
 }
 
