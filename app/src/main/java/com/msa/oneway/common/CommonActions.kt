@@ -1,6 +1,6 @@
 package com.msa.oneway.common
 
-import com.msa.oneway.core.EventAction
+import com.msa.core.EventAction
 
 /**
  * Created by Abhi Muktheeswarar on 19-August-2020

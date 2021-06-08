@@ -7,11 +7,11 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import com.msa.core.Action
+import com.msa.core.EventAction
+import com.msa.core.NavigateAction
 import com.msa.oneway.R
 import com.msa.oneway.common.ShowToastAction
-import com.msa.oneway.core.Action
-import com.msa.oneway.core.EventAction
-import com.msa.oneway.core.NavigateAction
 import com.msa.oneway.providers.BaseViewModelFactory
 import com.msa.oneway.sample.entities.HomeScreenState
 import com.msa.oneway.sample.entities.TodoAction
@@ -55,8 +55,12 @@ class HomeActivity : AppCompatActivity() {
             Log.d(tag, "count = $count")
         })*/
 
-        dispatch(TodoAction.GetTodoListRxAction)
+        //dispatch(TodoAction.GetTodoListRxAction)
         dispatch(ShowToastAction("Welcome to OneWay"))
+
+        button_open.setOnClickListener {
+
+        }
     }
 
     @SuppressLint("SetTextI18n")

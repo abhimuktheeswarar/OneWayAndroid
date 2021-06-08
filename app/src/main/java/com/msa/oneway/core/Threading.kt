@@ -7,13 +7,12 @@ import android.os.Looper
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Runnable
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
-import kotlin.coroutines.CoroutineContext
 
 /**
  * Created by Abhi Muktheeswarar on 19-August-2020
@@ -78,30 +77,6 @@ class CurrentThreadExecutor : Executor {
     }
 }
 
-object CoroutineScopeProvider {
-
-    fun getOneWayViewModelCoroutineContext(coroutineContext: CoroutineContext = Dispatchers.Default) =
-        CoroutineScope(
-            SupervisorJob() + coroutineContext + CoroutineExceptionHandler { _, throwable ->
-                if (throwable is CancellationException) {
-                    throwable.printStackTrace()
-                } else {
-                    throw throwable
-                }
-
-            }).coroutineContext
-
-}
-
-@Suppress("PropertyName")
-open class CoroutineDispatcherProvider(val coroutineContext: CoroutineContext) {
-
-    open val Current: CoroutineContext by lazy { coroutineContext }
-    open val Main: CoroutineContext by lazy { Dispatchers.Main }
-    open val IO: CoroutineContext by lazy { Dispatchers.IO }
-    open val Default: CoroutineContext by lazy { Dispatchers.Default }
-    open val Unconfined: CoroutineContext by lazy { Dispatchers.Unconfined }
-}
 
 
 open class SchedulerProvider(scheduler: Scheduler) {

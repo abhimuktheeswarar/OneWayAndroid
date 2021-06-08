@@ -2,6 +2,8 @@ package com.msa.oneway.sideeffects
 
 import android.util.Log
 import com.google.gson.Gson
+import com.msa.core.Action
+import com.msa.core.CoroutineDispatcherProvider
 import com.msa.oneway.Utils
 import com.msa.oneway.common.network.NetworkResponse
 import com.msa.oneway.core.*
@@ -19,9 +21,11 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.TestObserver
 import io.reactivex.schedulers.TestScheduler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -76,6 +80,7 @@ class DummySideEffectTest {
         DummyCoroutineSideEffect(
             store = store,
             threadExecutorService = threadExecutorService,
+            scope = TestCoroutineScope(),
             coroutineDispatcherProvider = coroutineDispatcherProvider
         )
 
@@ -110,10 +115,12 @@ class DummySideEffectTest {
 class DummyCoroutineSideEffect(
     store: Store<*>,
     threadExecutorService: ThreadExecutorService,
+    scope: CoroutineScope,
     coroutineDispatcherProvider: CoroutineDispatcherProvider
 ) : BaseCoroutineSideEffect(
     store,
     threadExecutorService,
+    scope,
     coroutineDispatcherProvider
 ) {
 
@@ -124,7 +131,7 @@ class DummyCoroutineSideEffect(
             return
         }
 
-        launch(coroutineDispatcherProvider.IO) {
+        scope.launch(coroutineDispatcherProvider.IO) {
             println("start")
             delay(500)
             dispatch(TodoAction.SetCountAction(2))

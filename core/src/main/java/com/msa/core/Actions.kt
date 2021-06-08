@@ -1,4 +1,4 @@
-package com.msa.oneway.core
+package com.msa.core
 
 
 /**

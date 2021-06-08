@@ -1,6 +1,9 @@
 package com.msa.oneway.sample.ui
 
 import android.content.Context
+import androidx.lifecycle.viewModelScope
+import com.msa.core.CoroutineDispatcherProvider
+import com.msa.core.CoroutineScopeProvider
 import com.msa.oneway.core.*
 import com.msa.oneway.providers.RepositoryProvider
 import com.msa.oneway.sample.domain.HomeStore
@@ -38,6 +41,13 @@ class HomeViewModel(
             val schedulerProvider = SchedulerProvider(Schedulers.from(ExecutorServices.sideEffect))
             val compositeDisposable = CompositeDisposable()
 
+            val homeViewModel = HomeViewModel(
+                store,
+                mainThread,
+                coroutineDispatcherProvider.coroutineContext,
+                compositeDisposable
+            )
+
             GetTodoListRxSideEffect(
                 store,
                 todoRepository,
@@ -51,15 +61,11 @@ class HomeViewModel(
                 todoRepository,
                 resourceRepository,
                 threadExecutorService,
+                homeViewModel.viewModelScope,
                 coroutineDispatcherProvider
             )
 
-            return HomeViewModel(
-                store,
-                mainThread,
-                coroutineDispatcherProvider.coroutineContext,
-                compositeDisposable
-            )
+            return homeViewModel
         }
     }
 }

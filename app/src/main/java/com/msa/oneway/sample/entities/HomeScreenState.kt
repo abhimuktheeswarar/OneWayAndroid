@@ -1,6 +1,6 @@
 package com.msa.oneway.sample.entities
 
-import com.msa.oneway.core.State
+import com.msa.core.State
 
 /**
  * Created by Abhi Muktheeswarar on 20-August-2020

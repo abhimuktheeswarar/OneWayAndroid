@@ -1,7 +1,7 @@
 package com.msa.oneway.sample.entities
 
-import com.msa.oneway.core.Action
-import com.msa.oneway.core.NavigateAction
+import com.msa.core.Action
+import com.msa.core.NavigateAction
 
 
 /**

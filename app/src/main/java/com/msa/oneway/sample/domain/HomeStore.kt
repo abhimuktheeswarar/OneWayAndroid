@@ -1,7 +1,7 @@
 package com.msa.oneway.sample.domain
 
 import android.util.Log
-import com.msa.oneway.core.Action
+import com.msa.core.Action
 import com.msa.oneway.core.Store
 import com.msa.oneway.core.StoreThreadService
 import com.msa.oneway.core.ThreadExecutor
