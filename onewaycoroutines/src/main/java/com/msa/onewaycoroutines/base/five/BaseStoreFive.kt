@@ -1,4 +1,4 @@
-package com.msa.onewaycoroutines.base.two
+package com.msa.onewaycoroutines.base.five
 
 import android.util.Log
 import com.msa.core.Action
@@ -12,8 +12,9 @@ import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 
 /**
- * Created by Abhi Muktheeswarar on 07-June-2021.
+ * Created by Abhi Muktheeswarar on 09-June-2021.
  */
+
 
 internal class GetStateAction(
     val deferred: CompletableDeferred<State>
@@ -25,8 +26,7 @@ private fun <S : State> CoroutineScope.store(
     initialState: S,
     inputActions: SharedFlow<Action>,
     setStates: MutableStateFlow<S>,
-    relayActions: MutableSharedFlow<Action>,
-    reduce: suspend (action: Action, state: S) -> S
+    reduce: (action: Action, state: S) -> S
 ) = launch {
 
     var state = initialState
@@ -42,12 +42,15 @@ private fun <S : State> CoroutineScope.store(
                         val updatedState = reduce(action, state)
                         state = updatedState
                         setStates.emit(state)
-                        relayActions.emit(action)
                     }.let { timeTakenToComputeNewState ->
                         //To make sure we are not doing any heavy work in reducer
-                        Log.d("Store", "Took ${timeTakenToComputeNewState}ms for $action")
                         if (timeTakenToComputeNewState > 8) {
-                            throw ExceededTimeLimitToComputeNewStatException("Took $timeTakenToComputeNewState for $action")
+                            val e =
+                                ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for $action")
+                            //e.printStackTrace()
+                            Log.w("Store", "Took ${timeTakenToComputeNewState}ms for $action")
+                        } else {
+                            Log.d("Store", "Took ${timeTakenToComputeNewState}ms for $action")
                         }
                     }
                 }
@@ -55,9 +58,34 @@ private fun <S : State> CoroutineScope.store(
         }
 }
 
+interface BaseStoreFiveInterface<S : State> {
 
-abstract class BaseStoreTwo<S : State>(
+    val initialState: S
+    val scope: CoroutineScope
+    val states: Flow<S>
+    val computeNewStates: Flow<ComputeNewStateAction<S>>
+    val relayActions: Flow<Action>
+
+    fun dispatch(action: Action)
+
+    fun state(): S
+
+    suspend fun <S : State> currentState(): S
+
+    fun cancel() {
+        scope.cancel()
+    }
+}
+
+class ComputeNewStateAction<S : State>(
+    val action: Action,
+    val currentState: S,
+    val deferred: CompletableDeferred<S>
+) : Action
+
+class BaseStoreFive<S : State>(
     initialState: S,
+    reducer: (action: Action, state: S) -> S,
     private val scope: CoroutineScope
 ) {
 
@@ -70,23 +98,22 @@ abstract class BaseStoreTwo<S : State>(
         buffer(capacity = Int.MAX_VALUE, onBufferOverflow = BufferOverflow.SUSPEND)
     }
 
+    private val mutableComputeStates: MutableSharedFlow<ComputeNewStateAction<S>> =
+        MutableSharedFlow(
+            extraBufferCapacity = Int.MAX_VALUE,
+            onBufferOverflow = BufferOverflow.SUSPEND
+        )
+
     val states: Flow<S> = mutableStates
-
-    private val mutableRelayActions: MutableSharedFlow<Action> = MutableSharedFlow(
-        extraBufferCapacity = Int.MAX_VALUE,
-        onBufferOverflow = BufferOverflow.SUSPEND
-    )
-
-    val relayActions: Flow<Action> = mutableRelayActions
+    val relayActions: Flow<Action> = mutableInputActions
 
     init {
         scope.store(
             initialState = initialState,
             inputActions = mutableInputActions,
             setStates = mutableStates,
-            relayActions = mutableRelayActions
-        ) { action, state -> reduce(action, state) }
-
+            reduce = reducer,
+        )
     }
 
     fun dispatch(action: Action) {
@@ -96,13 +123,11 @@ abstract class BaseStoreTwo<S : State>(
     fun state(): S = mutableStates.value
 
     @Suppress("UNCHECKED_CAST")
-    suspend fun <S : State> currentState(): S {
+    suspend fun <S : State> getState(): S {
         val deferred = CompletableDeferred<State>()
         mutableInputActions.emit(GetStateAction(deferred))
         return deferred.await() as S
     }
-
-    protected abstract suspend fun reduce(action: Action, currentState: S): S
 
     fun cancel() {
         scope.cancel()

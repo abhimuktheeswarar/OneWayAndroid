@@ -7,6 +7,8 @@ package com.msa.core
 
 interface Action
 
+fun Action.name(): String = javaClass.simpleName
+
 interface EventAction : Action
 
 interface NavigateAction : Action

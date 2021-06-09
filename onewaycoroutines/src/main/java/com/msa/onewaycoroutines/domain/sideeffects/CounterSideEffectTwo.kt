@@ -10,8 +10,6 @@ import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
 
 /**
  * Created by Abhi Muktheeswarar on 07-June-2021.
@@ -44,23 +42,21 @@ class CounterSideEffectTwo(
                 //delay(5000)
                 //dispatch(CounterAction.IncrementAction)
                 //cancelExistingJob(action)
-                scope.launch {
-                    val beforeState = state<CounterState>()
-                    delay(2000)
-                    dispatch(CounterAction.ForceUpdateAction(beforeState.counter * 2))
-                    val currentState = state<CounterState>()
-                    ensureActive()
-                    Log.d(
-                        TAG,
-                        "beforeState = ${beforeState.counter} vs currentState = ${currentState.counter}"
-                    )
-                }
+                val beforeState = state<CounterState>()
+                dispatch(CounterAction.ForceUpdateAction(beforeState.counter * 10))
+                val currentState = state<CounterState>()
+                Log.d(
+                    TAG,
+                    "beforeState = ${beforeState.counter} vs currentState = ${currentState.counter}"
+                )
             }
             is CounterAction.ResetAction -> {
-                scope.launch {
-                    val time = getCurrentTime()
-                    Log.d(TAG, "time = $time")
-                }
+                /* delay(8000)
+                 dispatch(CounterAction.ForceUpdateAction(10))
+                 scope.launch {
+                     val time = getCurrentTime()
+                     Log.d(TAG, "time = $time")
+                 }*/
             }
         }
     }

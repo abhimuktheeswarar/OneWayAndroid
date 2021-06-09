@@ -1,13 +1,11 @@
 package com.msa.onewaycoroutines.base.two
 
-import android.util.Log
 import com.msa.core.Action
 import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.State
-import com.msa.onewaycoroutines.entities.CounterState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 /**
  * Created by Abhi Muktheeswarar on 07-June-2021.
@@ -21,15 +19,9 @@ abstract class BaseSideEffectTwo(
     protected val TAG: String = this.javaClass.simpleName
 
     init {
-        scope.launch {
-            store.relayActions.collect {
-                Log.i(
-                    TAG,
-                    "collect relay actions: ${it.javaClass.simpleName} | ${state<CounterState>().counter}"
-                )
-                handle(it)
-            }
-        }
+        store.relayActions.onEach {
+            handle(it)
+        }.launchIn(scope)
     }
 
     fun dispatch(action: Action) {
