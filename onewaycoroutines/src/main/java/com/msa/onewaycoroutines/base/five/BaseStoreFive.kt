@@ -45,10 +45,8 @@ private fun <S : State> CoroutineScope.store(
                     }.let { timeTakenToComputeNewState ->
                         //To make sure we are not doing any heavy work in reducer
                         if (timeTakenToComputeNewState > 8) {
-                            val e =
-                                ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for $action")
-                            //e.printStackTrace()
-                            Log.w("Store", "Took ${timeTakenToComputeNewState}ms for $action")
+                            throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for $action")
+                            //Log.w("Store", "Took ${timeTakenToComputeNewState}ms for $action")
                         } else {
                             Log.d("Store", "Took ${timeTakenToComputeNewState}ms for $action")
                         }
@@ -57,31 +55,6 @@ private fun <S : State> CoroutineScope.store(
             }
         }
 }
-
-interface BaseStoreFiveInterface<S : State> {
-
-    val initialState: S
-    val scope: CoroutineScope
-    val states: Flow<S>
-    val computeNewStates: Flow<ComputeNewStateAction<S>>
-    val relayActions: Flow<Action>
-
-    fun dispatch(action: Action)
-
-    fun state(): S
-
-    suspend fun <S : State> currentState(): S
-
-    fun cancel() {
-        scope.cancel()
-    }
-}
-
-class ComputeNewStateAction<S : State>(
-    val action: Action,
-    val currentState: S,
-    val deferred: CompletableDeferred<S>
-) : Action
 
 class BaseStoreFive<S : State>(
     initialState: S,
@@ -97,12 +70,6 @@ class BaseStoreFive<S : State>(
     private val mutableStates: MutableStateFlow<S> = MutableStateFlow(initialState).apply {
         buffer(capacity = Int.MAX_VALUE, onBufferOverflow = BufferOverflow.SUSPEND)
     }
-
-    private val mutableComputeStates: MutableSharedFlow<ComputeNewStateAction<S>> =
-        MutableSharedFlow(
-            extraBufferCapacity = Int.MAX_VALUE,
-            onBufferOverflow = BufferOverflow.SUSPEND
-        )
 
     val states: Flow<S> = mutableStates
     val relayActions: Flow<Action> = mutableInputActions

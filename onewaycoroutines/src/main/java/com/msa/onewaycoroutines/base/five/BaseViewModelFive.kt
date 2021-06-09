@@ -23,8 +23,6 @@ abstract class BaseViewModelFive<S : State>(
 
     private val store: BaseStoreFive<S> = BaseStoreFive(initialState, reducer, scope)
 
-    //protected val computeNewStates: Flow<ComputeNewStateAction<S>> = store.computeNewStates
-
     val states: Flow<S> = store.states
     val relayActions: Flow<Action> = store.relayActions
     val eventActions: Flow<EventAction> = relayActions.filterIsInstance()
