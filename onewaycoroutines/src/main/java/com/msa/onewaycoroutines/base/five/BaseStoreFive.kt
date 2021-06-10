@@ -15,7 +15,6 @@ import kotlin.system.measureTimeMillis
  * Created by Abhi Muktheeswarar on 09-June-2021.
  */
 
-
 internal class GetStateAction(
     val deferred: CompletableDeferred<State>
 ) : Action
@@ -42,11 +41,12 @@ private fun <S : State> CoroutineScope.store(
                         val updatedState = reduce(action, state)
                         state = updatedState
                         setStates.emit(state)
+
                     }.let { timeTakenToComputeNewState ->
                         //To make sure we are not doing any heavy work in reducer
                         if (timeTakenToComputeNewState > 8) {
-                            throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for $action")
                             //Log.w("Store", "Took ${timeTakenToComputeNewState}ms for $action")
+                            throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for $action")
                         } else {
                             Log.d("Store", "Took ${timeTakenToComputeNewState}ms for $action")
                         }

@@ -16,12 +16,11 @@ import kotlinx.coroutines.flow.filterIsInstance
 abstract class BaseViewModelFive<S : State>(
     initialState: S,
     reducer: (action: Action, state: S) -> S,
-    protected val scope: CoroutineScope
+    protected val scope: CoroutineScope,
+    private val store: BaseStoreFive<S> = BaseStoreFive(initialState, reducer, scope)
 ) : ViewModel() {
 
     protected val TAG: String = javaClass.simpleName
-
-    private val store: BaseStoreFive<S> = BaseStoreFive(initialState, reducer, scope)
 
     val states: Flow<S> = store.states
     val relayActions: Flow<Action> = store.relayActions

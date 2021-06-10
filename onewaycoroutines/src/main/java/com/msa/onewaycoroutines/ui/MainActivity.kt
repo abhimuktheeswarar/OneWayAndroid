@@ -7,12 +7,12 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.msa.core.EventAction
+import com.msa.core.name
 import com.msa.onewaycoroutines.base.BaseViewModelFactory
 import com.msa.onewaycoroutines.common.ShowToastAction
 import com.msa.onewaycoroutines.databinding.ActivityMainBinding
 import com.msa.onewaycoroutines.entities.CounterAction
-import com.msa.onewaycoroutines.ui.viewmodels.CounterReducerFive
-import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelFive
+import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelTwoSix
 import kotlinx.coroutines.flow.collect
 
 class MainActivity : AppCompatActivity() {
@@ -27,9 +27,9 @@ class MainActivity : AppCompatActivity() {
         }
     }*/
 
-    private val viewModel by viewModels<CounterViewModelFive> {
+    private val viewModel by viewModels<CounterViewModelTwoSix> {
         BaseViewModelFactory {
-            CounterViewModelFive(CounterReducerFive)
+            CounterViewModelTwoSix.get()
         }
     }
 
@@ -47,14 +47,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.buttonReset.setOnClickListener {
-            Log.d(TAG, "Current state = ${viewModel.state()}")
             viewModel.dispatch(CounterAction.ResetAction)
         }
 
         binding.buttonShowToast.setOnClickListener {
             viewModel.dispatch(ShowToastAction("${System.currentTimeMillis()}"))
         }
-
 
         lifecycleScope.launchWhenCreated {
             viewModel.states.collect(::setupViews)
@@ -66,11 +64,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupViews(state: com.msa.onewaycoroutines.entities.CounterState) {
-        Log.d(TAG, "setupViews = $state | ${viewModel.state()}")
+        Log.d(TAG, "setupViews = $state | ${viewModel.state()} | ${Thread.currentThread()}")
         binding.textCount.text = state.counter.toString()
     }
 
     private fun processEvents(action: EventAction) {
+        Log.d(TAG, "processEvents = ${action.name()}")
         when (action) {
 
             is ShowToastAction -> {

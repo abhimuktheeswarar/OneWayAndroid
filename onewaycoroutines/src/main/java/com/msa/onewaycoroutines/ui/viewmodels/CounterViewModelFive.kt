@@ -64,6 +64,10 @@ class CounterViewModelFive(reducer: Reducer<CounterState>) : BaseViewModelFive<C
             }
         }
     }
+
+    fun reduce(action: Action, state: CounterState): CounterState {
+        TODO()
+    }
 }
 
 object CounterReducerFive : Reducer<CounterState> {
