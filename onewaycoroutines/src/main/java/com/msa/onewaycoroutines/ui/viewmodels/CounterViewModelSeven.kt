@@ -5,8 +5,6 @@ import com.msa.core.SideEffect
 import com.msa.onewaycoroutines.base.seven.BaseViewModelSeven
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
 /**
  * Created by Abhi Muktheeswarar on 11-June-2021.
@@ -15,7 +13,7 @@ import kotlinx.coroutines.flow.onEach
 class CounterViewModelSeven : BaseViewModelSeven<CounterState>(CounterState()), SideEffect {
 
     init {
-        actions.onEach(::handle).launchIn(scope)
+        //actions.onEach(::handle).launchIn(scope)
     }
 
     override fun handle(action: Action) {

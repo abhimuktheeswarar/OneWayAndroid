@@ -14,6 +14,9 @@ import com.msa.onewaycoroutines.databinding.ActivityMainBinding
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
 import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelSeven
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -42,6 +45,8 @@ class MainActivity : AppCompatActivity() {
             CounterViewModelSeven()
         }
     }
+    private val scope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,13 +64,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.buttonIncrement.setOnClickListener {
             //viewModel.dispatch(CounterAction.IncrementAction)
-            lifecycleScope.launch {
+            scope.launch {
                 repeat(25) {
-                    Log.d(TAG, "$it repeat = ${viewModel.state()}")
                     viewModel.dispatch(CounterAction.IncrementAction)
-                    val count = viewModel.getState().counter
-                    Log.d(TAG, "$it repeat = ${count}")
-                    viewModel.dispatch(CounterAction.ForceUpdateAction(count - 1))
+                    viewModel.dispatch(CounterAction.ForceUpdateAction(viewModel.getState().counter - 1))
                 }
             }
         }

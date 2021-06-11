@@ -5,7 +5,7 @@ import com.msa.core.Action
 import com.msa.core.EventAction
 import com.msa.core.NavigateAction
 import com.msa.core.State
-import kotlinx.coroutines.CoroutineExceptionHandler
+import com.msa.onewaycoroutines.base.coroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +26,6 @@ open class BaseViewModelSeven<S : State>(
 
     protected val TAG: String = javaClass.simpleName
     protected val actions: Flow<Action> = this.store.actions
-    protected val relayActions: Flow<Action> = this.store.relayActions
 
     val states: Flow<S> = this.store.states
     val eventActions: Flow<EventAction> = actions.filterIsInstance()
@@ -38,16 +37,16 @@ open class BaseViewModelSeven<S : State>(
         reduce = reduce ?: ::reduce
     )
 
-    fun state() = store.state<S>()
+    fun state() = store.state()
 
-    suspend fun getState() = store.getState<S>()
+    suspend fun getState() = store.getState()
 
     fun dispatch(action: Action) {
         store.dispatch(action)
     }
 
     protected open fun reduce(action: Action, state: S): S {
-        throw NotImplementedError()
+        throw NotImplementedError("Either provide a reducer in constructor or override this function")
     }
 
     override fun onCleared() {
@@ -55,8 +54,3 @@ open class BaseViewModelSeven<S : State>(
         store.terminate()
     }
 }
-
-private val coroutineExceptionHandler =
-    CoroutineExceptionHandler { coroutineContext, throwable ->
-        throwable.printStackTrace()
-    }

@@ -12,29 +12,7 @@ import kotlinx.coroutines.flow.onEach
  * Created by Abhi Muktheeswarar on 11-June-2021.
  */
 
-abstract class BaseSideEffectColdSeven(
-    private val store: BaseStoreSeven<*>,
-    protected val scope: CoroutineScope,
-    protected val dispatchers: CoroutineDispatcherProvider
-) : SideEffect {
-
-    protected val TAG: String = this.javaClass.simpleName
-
-    init {
-        store.relayActions.onEach(::handle).launchIn(scope)
-    }
-
-    fun dispatch(action: Action) {
-        store.dispatch(action)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun <S : State> state(): S = store.state()
-
-    suspend fun <S : State> getState(): S = store.getState()
-}
-
-abstract class BaseSideEffectHotSeven(
+abstract class BaseSideEffectSeven(
     private val store: BaseStoreSeven<*>,
     protected val scope: CoroutineScope,
     protected val dispatchers: CoroutineDispatcherProvider
@@ -51,7 +29,8 @@ abstract class BaseSideEffectHotSeven(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <S : State> state(): S = store.state()
+    fun <S : State> state(): S = store.state() as S
 
-    suspend fun <S : State> getState(): S = store.getState()
+    @Suppress("UNCHECKED_CAST")
+    suspend fun <S : State> getState(): S = store.getState() as S
 }
