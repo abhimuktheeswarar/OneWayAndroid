@@ -18,3 +18,5 @@ interface AnalyticsAction : Action
 object EventConsumedAction : EventAction
 
 object NavigateConsumedAction : NavigateAction
+
+interface SkipReducer : Action

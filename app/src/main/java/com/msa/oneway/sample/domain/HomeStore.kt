@@ -4,7 +4,6 @@ import android.util.Log
 import com.msa.core.Action
 import com.msa.oneway.core.Store
 import com.msa.oneway.core.StoreThreadService
-import com.msa.oneway.core.ThreadExecutor
 import com.msa.oneway.sample.entities.HomeScreenState
 import com.msa.oneway.sample.entities.TodoAction
 
@@ -14,10 +13,9 @@ import com.msa.oneway.sample.entities.TodoAction
 
 class HomeStore(
     initialState: HomeScreenState = HomeScreenState(),
-    storeThread: ThreadExecutor? = StoreThreadService()
 ) : Store<HomeScreenState>(
     initialState = initialState,
-    storeThread = storeThread,
+    storeThread = StoreThreadService(),
     logger = { tag, message -> Log.d(tag, message) }) {
 
     override fun reduce(action: Action, currentState: HomeScreenState): HomeScreenState {
