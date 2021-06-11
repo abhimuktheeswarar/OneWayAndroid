@@ -12,13 +12,12 @@ interface Store<S : State> {
 
     val actions: Flow<Action>
     val states: Flow<S>
-    val relayActions: Flow<Action>
 
     fun dispatch(action: Action)
 
-    fun <S : State> state(): S
+    fun state(): S
 
-    suspend fun <S : State> getState(): S
+    suspend fun getState(): S
 
     fun terminate()
 }

@@ -12,8 +12,10 @@ import com.msa.onewaycoroutines.base.BaseViewModelFactory
 import com.msa.onewaycoroutines.common.ShowToastAction
 import com.msa.onewaycoroutines.databinding.ActivityMainBinding
 import com.msa.onewaycoroutines.entities.CounterAction
-import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelTwoSix
+import com.msa.onewaycoroutines.entities.CounterState
+import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelSeven
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,9 +29,17 @@ class MainActivity : AppCompatActivity() {
         }
     }*/
 
-    private val viewModel by viewModels<CounterViewModelTwoSix> {
+    var counter = 0
+
+    /*private val viewModel by viewModels<CounterViewModelFive> {
         BaseViewModelFactory {
-            CounterViewModelTwoSix.get()
+            CounterViewModelFive()
+        }
+    }*/
+
+    private val viewModel by viewModels<CounterViewModelSeven> {
+        BaseViewModelFactory {
+            CounterViewModelSeven()
         }
     }
 
@@ -40,10 +50,24 @@ class MainActivity : AppCompatActivity() {
 
         binding.buttonDecrement.setOnClickListener {
             viewModel.dispatch(CounterAction.DecrementAction)
+            /*lifecycleScope.launch {
+                repeat(25) {
+                    viewModel.dispatch(CounterAction.DecrementAction)
+                }
+            }*/
         }
 
         binding.buttonIncrement.setOnClickListener {
-            viewModel.dispatch(CounterAction.IncrementAction)
+            //viewModel.dispatch(CounterAction.IncrementAction)
+            lifecycleScope.launch {
+                repeat(25) {
+                    Log.d(TAG, "$it repeat = ${viewModel.state()}")
+                    viewModel.dispatch(CounterAction.IncrementAction)
+                    val count = viewModel.getState().counter
+                    Log.d(TAG, "$it repeat = ${count}")
+                    viewModel.dispatch(CounterAction.ForceUpdateAction(count - 1))
+                }
+            }
         }
 
         binding.buttonReset.setOnClickListener {
@@ -63,8 +87,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupViews(state: com.msa.onewaycoroutines.entities.CounterState) {
-        Log.d(TAG, "setupViews = $state | ${viewModel.state()} | ${Thread.currentThread()}")
+    private fun setupViews(state: CounterState) {
+        //Log.d(TAG, "$counter setupViews = ${state.counter}")
+        counter++
         binding.textCount.text = state.counter.toString()
     }
 

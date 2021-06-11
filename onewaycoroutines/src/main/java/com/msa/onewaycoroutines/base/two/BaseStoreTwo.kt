@@ -3,6 +3,7 @@ package com.msa.onewaycoroutines.base.two
 import android.util.Log
 import com.msa.core.Action
 import com.msa.core.State
+import com.msa.onewaycoroutines.base.ExceededTimeLimitToComputeNewStatException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -18,8 +19,6 @@ import kotlin.system.measureTimeMillis
 internal class GetStateAction(
     val deferred: CompletableDeferred<State>
 ) : Action
-
-class ExceededTimeLimitToComputeNewStatException(override val message: String) : Exception()
 
 private fun <S : State> CoroutineScope.store(
     initialState: S,

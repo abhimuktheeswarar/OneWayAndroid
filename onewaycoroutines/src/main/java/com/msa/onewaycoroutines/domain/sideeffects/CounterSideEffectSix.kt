@@ -38,6 +38,7 @@ class CounterSideEffectSix(
                     "beforeState = ${beforeState.counter} vs currentState = ${currentState.counter}"
                 )*/
             }
+
             is ShowToastAction -> {
                 scope.launch {
                     measureTimeMillis {

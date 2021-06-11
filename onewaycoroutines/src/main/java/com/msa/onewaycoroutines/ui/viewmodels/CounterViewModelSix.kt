@@ -10,12 +10,14 @@ import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 /**
  * Created by Abhi Muktheeswarar on 10-June-2021.
  */
 
-class CounterViewModelSix : BaseViewModelSix<CounterState>(initialState = CounterState()),
+class CounterViewModelSix :
+    BaseViewModelSix<CounterState>(initialState = CounterState()),
     Reducer<CounterState>, SideEffect {
 
     init {
@@ -24,17 +26,12 @@ class CounterViewModelSix : BaseViewModelSix<CounterState>(initialState = Counte
     }
 
     override fun reduce(action: Action, state: CounterState): CounterState {
-        Log.d(TAG, "reduce action = ${action.name()} | $state")
+        Log.d("Reducer", "reduce action = ${action.name()} | $state")
         return when (action) {
 
             is CounterAction.IncrementAction -> state.copy(counter = state.counter + 1)
 
-            is CounterAction.DecrementAction -> {
-                /* for (i in 0..100_000) {
-                     Log.d(TAG, "i = $i")
-                 }*/
-                state.copy(counter = state.counter - 1)
-            }
+            is CounterAction.DecrementAction -> state.copy(counter = state.counter - 1)
 
             is CounterAction.ForceUpdateAction -> state.copy(counter = action.count)
 
@@ -50,11 +47,10 @@ class CounterViewModelSix : BaseViewModelSix<CounterState>(initialState = Counte
         when (action) {
 
             is CounterAction.IncrementAction -> {
-                /*dispatch(CounterAction.ForceUpdateAction(state().counter +1 * 10))
                 scope.launch {
-                    Log.d(TAG, "currentState 0 = ${state()}")
-                    Log.d(TAG, "currentState 1 = ${getState()} ")
-                }*/
+                    val currentCount = getState().counter
+                    dispatch(CounterAction.ForceUpdateAction(currentCount - 1))
+                }
             }
 
             is CounterAction.DecrementAction -> {

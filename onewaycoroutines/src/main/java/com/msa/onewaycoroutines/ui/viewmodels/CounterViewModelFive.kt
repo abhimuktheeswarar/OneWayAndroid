@@ -6,6 +6,7 @@ import com.msa.core.Reducer
 import com.msa.core.SideEffect
 import com.msa.core.name
 import com.msa.onewaycoroutines.base.five.BaseViewModelFive
+import com.msa.onewaycoroutines.domain.reducers.CounterStateReducerFive
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
 import kotlinx.coroutines.CoroutineScope
@@ -18,16 +19,18 @@ import kotlinx.coroutines.launch
  * Created by Abhi Muktheeswarar on 09-June-2021.
  */
 
-class CounterViewModelFive(reducer: Reducer<CounterState>) : BaseViewModelFive<CounterState>(
-    CounterState(),
-    reducer::reduce,
-    CoroutineScope(SupervisorJob())
-),
-    SideEffect {
+class CounterViewModelFive(reducer: Reducer<CounterState> = CounterStateReducerFive) :
+    BaseViewModelFive<CounterState>(
+        CounterState(),
+        reducer::reduce,
+        CoroutineScope(SupervisorJob())
+    ),
+    SideEffect, Reducer<CounterState> {
 
     init {
         relayActions.onEach(::handle).launchIn(scope)
     }
+
 
     override fun handle(action: Action) {
         Log.d(TAG, "handle = ${action.name()}")
@@ -35,7 +38,7 @@ class CounterViewModelFive(reducer: Reducer<CounterState>) : BaseViewModelFive<C
         when (action) {
 
             is CounterAction.IncrementAction -> {
-                //dispatch(CounterAction.ForceUpdateAction(beforeState.counter * 10))
+                /*//dispatch(CounterAction.ForceUpdateAction(beforeState.counter * 10))
                 scope.launch {
                     Log.d(
                         TAG,
@@ -45,6 +48,11 @@ class CounterViewModelFive(reducer: Reducer<CounterState>) : BaseViewModelFive<C
                         TAG,
                         "currentState 1 = ${getState()} "
                     )
+                }*/
+
+                scope.launch {
+                    val currentCount = getState().counter
+                    dispatch(CounterAction.ForceUpdateAction(currentCount - 1))
                 }
             }
 
@@ -65,25 +73,7 @@ class CounterViewModelFive(reducer: Reducer<CounterState>) : BaseViewModelFive<C
         }
     }
 
-    fun reduce(action: Action, state: CounterState): CounterState {
-        TODO()
-    }
-}
-
-object CounterReducerFive : Reducer<CounterState> {
-
     override fun reduce(action: Action, state: CounterState): CounterState {
-        return when (action) {
-
-            is CounterAction.IncrementAction -> state.copy(counter = state.counter + 1)
-
-            is CounterAction.DecrementAction -> state.copy(counter = state.counter - 1)
-
-            is CounterAction.ForceUpdateAction -> state.copy(counter = action.count)
-
-            is CounterAction.ResetAction -> state.copy(counter = 0)
-
-            else -> state
-        }
+        TODO()
     }
 }

@@ -2,7 +2,11 @@ package com.msa.onewaycoroutines.base.five
 
 import android.util.Log
 import com.msa.core.Action
+import com.msa.core.SkipReducer
 import com.msa.core.State
+import com.msa.core.name
+import com.msa.onewaycoroutines.base.ExceededTimeLimitToComputeNewStatException
+import com.msa.onewaycoroutines.entities.CounterAction
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -19,39 +23,45 @@ internal class GetStateAction(
     val deferred: CompletableDeferred<State>
 ) : Action
 
-class ExceededTimeLimitToComputeNewStatException(override val message: String) : Exception()
-
 private fun <S : State> CoroutineScope.store(
     initialState: S,
-    inputActions: SharedFlow<Action>,
+    inputActions: Flow<Action>,
     setStates: MutableStateFlow<S>,
     reduce: (action: Action, state: S) -> S
 ) = launch {
 
     var state = initialState
 
+    var count = 1
+
     inputActions
         .collect { action ->
-            when (action) {
-                is GetStateAction -> {
-                    action.deferred.complete(state)
-                }
-                else -> {
-                    measureTimeMillis {
-                        val updatedState = reduce(action, state)
-                        state = updatedState
-                        setStates.emit(state)
-
-                    }.let { timeTakenToComputeNewState ->
-                        //To make sure we are not doing any heavy work in reducer
-                        if (timeTakenToComputeNewState > 8) {
-                            //Log.w("Store", "Took ${timeTakenToComputeNewState}ms for $action")
-                            throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for $action")
-                        } else {
-                            Log.d("Store", "Took ${timeTakenToComputeNewState}ms for $action")
-                        }
+            if (action !is GetStateAction) {
+                measureTimeMillis {
+                    val updatedState = reduce(action, state)
+                    state = updatedState
+                    setStates.emit(state)
+                }.let { timeTakenToComputeNewState ->
+                    //To make sure we are not doing any heavy work in reducer
+                    if (timeTakenToComputeNewState > 8) {
+                        //Log.w("Store", "$count Took ${timeTakenToComputeNewState}ms for $action")
+                        throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
+                    } else {
+                        Log.d(
+                            "Store",
+                            "$count Took ${timeTakenToComputeNewState}ms for ${action.name()}"
+                        )
                     }
+
+                    if (action is CounterAction.ResetAction) {
+                        count = 1
+                    } else count++
                 }
+
+            } else {
+                action.deferred.complete(state)
+                Log.i("Store", "$count Took for ${action.name()}")
+                count++
             }
         }
 }
@@ -77,9 +87,9 @@ class BaseStoreFive<S : State>(
     init {
         scope.store(
             initialState = initialState,
-            inputActions = mutableInputActions,
+            inputActions = mutableInputActions.filterNot { it is SkipReducer },
             setStates = mutableStates,
-            reduce = reducer,
+            reduce = reducer
         )
     }
 

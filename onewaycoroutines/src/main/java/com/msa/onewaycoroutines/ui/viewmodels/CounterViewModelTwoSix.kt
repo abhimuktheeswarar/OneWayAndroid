@@ -23,6 +23,7 @@ class CounterViewModelTwoSix(
     companion object {
 
         fun get(): CounterViewModelTwoSix {
+
             val scope =
                 CoroutineScope(SupervisorJob() + CoroutineExceptionHandler { coroutineContext, throwable ->
                     throwable.printStackTrace()

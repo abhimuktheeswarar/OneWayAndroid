@@ -5,6 +5,9 @@ import com.msa.core.Action
 import com.msa.core.Reducer
 import com.msa.core.State
 import com.msa.core.name
+import com.msa.onewaycoroutines.base.ExceededTimeLimitToComputeNewStatException
+import com.msa.onewaycoroutines.base.TAG_REDUCER
+import com.msa.onewaycoroutines.base.TAG_STORE
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -30,14 +33,11 @@ data class StateTransporter<S : State>(
     val state: S
 )
 
-class ExceededTimeLimitToComputeNewStatException(override val message: String) : Exception()
-
-const val TAG = "Store"
-
 private fun <S : State> CoroutineScope.stateMachine(
     initialState: S,
     inputActions: ReceiveChannel<Action>,
-    computeStates: Channel<StateTransporter<S>>,
+    computeStates: SendChannel<StateTransporter<S>>,
+    newStates: ReceiveChannel<S>,
     requestStates: ReceiveChannel<Unit>,
     sendStates: SendChannel<S>,
     setStates: MutableStateFlow<S>
@@ -50,14 +50,25 @@ private fun <S : State> CoroutineScope.stateMachine(
         select<Unit> {
 
             inputActions.onReceive { action ->
-                Log.d(TAG, "onReceive action = ${action.name()}")
-                computeStates.send(StateTransporter(action, state))
-                state = computeStates.receive().state
-                setStates.emit(state)
+
+                measureTimeMillis {
+                    Log.d(TAG_STORE, "onReceive action = ${action.name()}")
+                    computeStates.send(StateTransporter(action, state))
+                    state = newStates.receive()
+                    setStates.emit(state)
+                }.let { timeTakenToComputeNewState ->
+                    //To make sure we are not doing any heavy work in reducer
+                    if (timeTakenToComputeNewState > 8) {
+                        //Log.w(TAG_STORE, "Took ${timeTakenToComputeNewState}ms for ${action.name()}  |  $state")
+                        throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
+                    } else {
+                        //Log.d(TAG_STORE, "Took ${timeTakenToComputeNewState}ms for ${action.name()}  |  $state")
+                    }
+                }
             }
 
             requestStates.onReceive {
-                Log.d(TAG, "onReceive Request State")
+                Log.d(TAG_STORE, "onReceive Request State")
                 sendStates.send(state)
             }
         }
@@ -69,20 +80,28 @@ private fun <S : State> CoroutineScope.reducer(
     reduce: (action: Action, state: S) -> S
 ) = launch {
 
+    var rAction: Action
+    var iState: S
+
     while (isActive) {
-        val request = store.computeStatesChannel.receive()
-        val (action, state) = request
-        Log.d("Reducer", "request action = ${action.name()} | $state")
         measureTimeMillis {
+            val request = store.computeStatesChannel.receive()
+            val (action, state) = request
+            rAction = action
             val newState = reduce(action, state)
-            store.computeStatesChannel.send(request.copy(state = newState))
+            iState = newState
+            //Log.d("Reducer", "request action = ${action.name()} | old = $state | new = $newState")
+            store.newStatesChannel.send(newState)
         }.let { timeTakenToComputeNewState ->
             //To make sure we are not doing any heavy work in reducer
             if (timeTakenToComputeNewState > 8) {
-                Log.w("Reducer", "Took ${timeTakenToComputeNewState}ms for ${action.name()}")
-                throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
+                Log.w(
+                    TAG_REDUCER,
+                    "Took ${timeTakenToComputeNewState}ms for ${rAction.name()}  |  $iState"
+                )
+                //throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
             } else {
-                Log.d("Reducer", "Took ${timeTakenToComputeNewState}ms for ${action.name()}")
+                //Log.d("Reducer", "$count Took ${timeTakenToComputeNewState}ms for ${rAction.name()}  |  $iState")
             }
         }
     }
@@ -99,11 +118,12 @@ class BaseStoreSix<S : State>(
         Channel(capacity = Channel.UNLIMITED, onBufferOverflow = BufferOverflow.SUSPEND)
 
     val computeStatesChannel: Channel<StateTransporter<S>> = Channel()
+    val newStatesChannel: Channel<S> = Channel()
 
     private val requestStatesChannel: Channel<Unit> =
-        Channel(capacity = Channel.UNLIMITED, onBufferOverflow = BufferOverflow.SUSPEND)
+        Channel()
     private val sendStatesChannel: Channel<S> =
-        Channel(capacity = Channel.UNLIMITED, onBufferOverflow = BufferOverflow.SUSPEND)
+        Channel()
 
     private val mutableRelayActions: MutableSharedFlow<Action> = MutableSharedFlow(
         extraBufferCapacity = Int.MAX_VALUE,
@@ -125,6 +145,7 @@ class BaseStoreSix<S : State>(
             initialState = initialState,
             inputActions = inputActions,
             computeStates = computeStatesChannel,
+            newStates = newStatesChannel,
             setStates = setStates,
             requestStates = requestStatesChannel,
             sendStates = sendStatesChannel
