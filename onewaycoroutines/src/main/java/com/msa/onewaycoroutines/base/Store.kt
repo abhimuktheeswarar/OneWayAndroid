@@ -17,7 +17,7 @@ interface Store<S : State> {
 
     fun state(): S
 
-    suspend fun getState(): S
+    suspend fun awaitState(): S
 
     fun terminate()
 }

@@ -37,7 +37,7 @@ class CounterStore(
     logger: (String, String) -> Unit = { _, _ -> Unit }
 ) : Store<CounterState>(CounterState(), sideEffects, stateHandlers, StoreThreadService(), logger) {
 
-    private val TAG: String = javaClass.simpleName
+    private val TAG by lazy<String> { javaClass.simpleName }
 
     override fun reduce(action: Action, currentState: CounterState): CounterState {
         Log.d(TAG, "reduce action = ${action.name()} | $currentState | ${Thread.currentThread()}")
@@ -80,9 +80,8 @@ class CounterSideEffect(
             }
 
             is CounterAction.ResetAction -> {
+                Log.d(TAG, "count = ${state<CounterState>().counter}")
                 dispatch(ShowToastAction("Reset completed"))
-
-
             }
         }
     }

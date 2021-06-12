@@ -45,6 +45,7 @@ class CounterActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 repeat(25) {
                     viewModel.dispatch(CounterAction.IncrementAction)
+                    viewModel.dispatch(CounterAction.ForceUpdateAction(viewModel.state.value!!.counter - 1))
                 }
             }
         }

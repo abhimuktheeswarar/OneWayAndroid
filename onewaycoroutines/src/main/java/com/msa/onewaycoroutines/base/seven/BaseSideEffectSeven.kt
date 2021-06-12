@@ -32,5 +32,5 @@ abstract class BaseSideEffectSeven(
     fun <S : State> state(): S = store.state() as S
 
     @Suppress("UNCHECKED_CAST")
-    suspend fun <S : State> getState(): S = store.getState() as S
+    suspend fun <S : State> awaitState(): S = store.awaitState() as S
 }

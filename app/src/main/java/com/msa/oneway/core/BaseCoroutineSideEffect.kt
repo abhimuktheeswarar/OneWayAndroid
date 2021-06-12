@@ -18,6 +18,8 @@ abstract class BaseCoroutineSideEffect(
     protected val coroutineDispatcherProvider: CoroutineDispatcherProvider
 ) : SideEffect {
 
+    protected val TAG: String = javaClass.simpleName
+
     init {
         store.sideEffects.add(this)
     }

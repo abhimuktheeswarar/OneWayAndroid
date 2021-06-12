@@ -1,32 +1,27 @@
 package com.msa.onewaycoroutines.base.seven
 
 import android.util.Log
-import com.msa.core.Action
-import com.msa.core.SkipReducer
-import com.msa.core.State
-import com.msa.core.name
+import com.msa.core.*
+import com.msa.onewaycoroutines.base.ExceededTimeLimitToComputeNewStatException
 import com.msa.onewaycoroutines.base.Store
 import com.msa.onewaycoroutines.base.TAG_STORE
+import com.msa.onewaycoroutines.utilities.MutableStateChecker
+import com.msa.onewaycoroutines.utilities.assertStateValues
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
-import kotlin.reflect.KClass
+import kotlin.system.measureTimeMillis
 
 /**
  * Created by Abhi Muktheeswarar on 11-June-2021.
  */
-
-typealias Reducer<S> = (action: Action, state: S) -> S
 
 private fun <S : State> CoroutineScope.stateMachine(
     initialState: S,
@@ -34,11 +29,12 @@ private fun <S : State> CoroutineScope.stateMachine(
     requestStates: ReceiveChannel<Unit>,
     sendStates: SendChannel<S>,
     setStates: MutableStateFlow<S>,
-    reduce: Reducer<S>
+    relayActions: MutableSharedFlow<Action>,
+    reduce: Reduce<S>,
+    config: StoreConfig
 ) = launch {
 
     var state = initialState
-    var count = 1
 
     while (isActive) {
 
@@ -46,47 +42,37 @@ private fun <S : State> CoroutineScope.stateMachine(
 
             inputActions.onReceive { action ->
 
-                /*measureTimeMillis {
+                measureTimeMillis {
                     Log.d(TAG_STORE, "onReceive action = ${action.name()}")
                     state = reduce(action, state)
                     setStates.emit(state)
                 }.let { timeTakenToComputeNewState ->
-                    //To make sure we are not doing any heavy work in reducer
-                    if (timeTakenToComputeNewState > 8) {
-                        //Log.w(TAG_STORE, "$count - Took: ${timeTakenToComputeNewState}ms for ${action.name()}  |  $state")
-                        //throw ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
-                    } else {
-                        //Log.d(TAG_STORE, "$count - Took: ${timeTakenToComputeNewState}ms for ${action.name()}  |  $state")
+                    if (timeTakenToComputeNewState > config.reducerTimeLimitInMilliSeconds) {
+                        val exception =
+                            ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
+                        if (config.debugMode) {
+                            exception.printStackTrace()
+                        } else {
+                            relayActions.tryEmit(StoreReducerExceededTimeLimitAction(exception))
+                        }
                     }
-
-                    if (action is CounterAction.ResetAction) {
-                        count = 1
-                    } else {
-                        count++
-                    }
-                }*/
-
-                Log.d(TAG_STORE, "onReceive action = ${action.name()}")
-                val newState = reduce(action, state)
-                state = newState
-                setStates.emit(state)
+                }
             }
 
             requestStates.onReceive {
                 Log.d(TAG_STORE, "onReceive Request State = $state")
                 sendStates.send(state)
-                //it.complete(state)
             }
         }
     }
 }
 
+typealias Reduce<S> = (action: Action, state: S) -> S
 
 class BaseStoreSeven<S : State>(
     initialState: S,
-    reduce: (action: Action, state: S) -> S,
-    private val scope: CoroutineScope,
-    private val actionsToSkipReduce: Set<KClass<out Action>> = setOf(SkipReducer::class)
+    private val reduce: Reduce<S>,
+    val config: StoreConfig
 ) : Store<S> {
 
     private val inputActionsChannel: Channel<Action> =
@@ -112,37 +98,52 @@ class BaseStoreSeven<S : State>(
     override val states: Flow<S> = setStates
     override val actions: Flow<Action> = inputActions
 
+    private val mutableStateChecker =
+        if (config.debugMode) MutableStateChecker(initialState) else null
+
     init {
 
-        scope.stateMachine(
+        config.scope.stateMachine(
             initialState = initialState,
             inputActions = inputActionsChannel,
             requestStates = requestStatesChannel,
             sendStates = sendStatesChannel,
             setStates = setStates,
-            reduce = reduce
+            relayActions = inputActions,
+            reduce = reduce,
+            config = config
         )
+
+        mutableStateChecker?.let { states.onEach(it::onStateChanged).launchIn(config.scope) }
     }
 
     override fun dispatch(action: Action) {
-
-        if (action !is SkipReducer && !actionsToSkipReduce.contains(action::class)) {
-            Log.d("DISPATCH", "${action.name()} | ${action is SkipReducer}")
+        if (action !is SkipReducer) {
+            if (config.debugMode) {
+                assertStateValues(action, state(), reduce)
+            }
             inputActionsChannel.trySend(action)
-        } else {
-            Log.w("DISPATCH", "${action.name()} | ${action is SkipReducer}")
         }
         inputActions.tryEmit(action)
     }
 
     override fun state(): S = setStates.value
 
-    override suspend fun getState(): S {
+    override suspend fun awaitState(): S {
         requestStatesChannel.send(Unit)
         return sendStatesChannel.receive()
     }
 
     override fun terminate() {
-        scope.cancel()
+        config.scope.cancel()
     }
 }
+
+data class StoreConfig(
+    val scope: CoroutineScope,
+    val debugMode: Boolean,
+    val reducerTimeLimitInMilliSeconds: Long = 8L
+)
+
+data class StoreReducerExceededTimeLimitAction(override val exception: ExceededTimeLimitToComputeNewStatException) :
+    ErrorAction

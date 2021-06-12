@@ -1,10 +1,14 @@
 package com.msa.onewaycoroutines.ui.viewmodels
 
+import android.util.Log
 import com.msa.core.Action
 import com.msa.core.SideEffect
 import com.msa.onewaycoroutines.base.seven.BaseViewModelSeven
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 /**
  * Created by Abhi Muktheeswarar on 11-June-2021.
@@ -13,7 +17,7 @@ import com.msa.onewaycoroutines.entities.CounterState
 class CounterViewModelSeven : BaseViewModelSeven<CounterState>(CounterState()), SideEffect {
 
     init {
-        //actions.onEach(::handle).launchIn(scope)
+        actions.onEach(::handle).launchIn(scope)
     }
 
     override fun handle(action: Action) {
@@ -22,11 +26,11 @@ class CounterViewModelSeven : BaseViewModelSeven<CounterState>(CounterState()), 
         when (action) {
 
             is CounterAction.IncrementAction -> {
-                /*scope.launch {
+                scope.launch {
                     //val currentCount = getState().counter
                     //dispatch(CounterAction.ForceUpdateAction(currentCount - 1))
-                    Log.d(TAG, "counter = ${state()} | ${getState()}")
-                }*/
+                    //Log.d(TAG, "counter = ${state()} | ${awaitState()}")
+                }
             }
 
             is CounterAction.DecrementAction -> {
@@ -47,20 +51,28 @@ class CounterViewModelSeven : BaseViewModelSeven<CounterState>(CounterState()), 
 
             is CounterAction.ResetAction -> {
 
+                scope.launch {
+                    val s = state()
+                    val gS = awaitState()
+                    Log.d(
+                        TAG,
+                        "state = $s vs getState = $gS"
+                    )
+                }
             }
         }
     }
 
-    override fun reduce(action: Action, state: CounterState): CounterState {
-        return when (action) {
+    override fun reduce(action: Action, state: CounterState): CounterState = with(state) {
+        when (action) {
 
-            is CounterAction.IncrementAction -> state.copy(counter = state.counter + 1)
+            is CounterAction.IncrementAction -> copy(counter = state.counter + 1)
 
-            is CounterAction.DecrementAction -> state.copy(counter = state.counter - 1)
+            is CounterAction.DecrementAction -> copy(counter = counter - 1)
 
-            is CounterAction.ForceUpdateAction -> state.copy(counter = action.count)
+            is CounterAction.ForceUpdateAction -> copy(counter = action.count)
 
-            is CounterAction.ResetAction -> state.copy(counter = 0)
+            is CounterAction.ResetAction -> copy(counter = 0)
 
             else -> state
         }

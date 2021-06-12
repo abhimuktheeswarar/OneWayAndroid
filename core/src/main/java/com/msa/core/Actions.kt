@@ -20,3 +20,7 @@ object EventConsumedAction : EventAction
 object NavigateConsumedAction : NavigateAction
 
 interface SkipReducer : Action
+
+interface ErrorAction : Action {
+    val exception: Exception
+}

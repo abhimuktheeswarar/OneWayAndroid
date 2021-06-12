@@ -18,7 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,13 +62,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.buttonIncrement.setOnClickListener {
-            //viewModel.dispatch(CounterAction.IncrementAction)
-            scope.launch {
+            viewModel.dispatch(CounterAction.IncrementAction)
+            /*scope.launch {
                 repeat(25) {
                     viewModel.dispatch(CounterAction.IncrementAction)
-                    viewModel.dispatch(CounterAction.ForceUpdateAction(viewModel.getState().counter - 1))
+                    viewModel.dispatch(CounterAction.ForceUpdateAction(viewModel.awaitState().counter - 1))
                 }
-            }
+            }*/
         }
 
         binding.buttonReset.setOnClickListener {
