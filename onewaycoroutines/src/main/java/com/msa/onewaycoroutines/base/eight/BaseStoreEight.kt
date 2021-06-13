@@ -1,13 +1,12 @@
-package com.msa.onewaycoroutines.base.seven
+package com.msa.onewaycoroutines.base.eight
 
 import android.util.Log
 import com.msa.core.Action
-import com.msa.core.SkipReducer
 import com.msa.core.State
 import com.msa.core.name
 import com.msa.onewaycoroutines.base.ExceededTimeLimitToComputeNewStatException
-import com.msa.onewaycoroutines.base.Store
 import com.msa.onewaycoroutines.base.TAG_STORE
+import com.msa.onewaycoroutines.common.Middleware
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.common.StoreReducerExceededTimeLimitAction
@@ -26,7 +25,7 @@ import kotlinx.coroutines.selects.select
 import kotlin.system.measureTimeMillis
 
 /**
- * Created by Abhi Muktheeswarar on 11-June-2021.
+ * Created by Abhi Muktheeswarar on 12-June-2021.
  */
 
 private fun <S : State> CoroutineScope.stateMachine(
@@ -35,9 +34,9 @@ private fun <S : State> CoroutineScope.stateMachine(
     requestStates: ReceiveChannel<Unit>,
     sendStates: SendChannel<S>,
     setStates: MutableStateFlow<S>,
-    relayActions: MutableSharedFlow<Action>,
+    coldActions: MutableSharedFlow<Action>,
     reduce: Reduce<S>,
-    config: StoreConfig
+    config: StoreConfig,
 ) = launch {
 
     var state = initialState
@@ -52,6 +51,8 @@ private fun <S : State> CoroutineScope.stateMachine(
                     Log.d(TAG_STORE, "onReceive action = ${action.name()}")
                     state = reduce(action, state)
                     setStates.emit(state)
+                    coldActions.tryEmit(action)
+
                 }.let { timeTakenToComputeNewState ->
                     if (timeTakenToComputeNewState > config.reducerTimeLimitInMilliSeconds) {
                         val exception =
@@ -59,7 +60,7 @@ private fun <S : State> CoroutineScope.stateMachine(
                         if (config.debugMode) {
                             exception.printStackTrace()
                         } else {
-                            relayActions.tryEmit(StoreReducerExceededTimeLimitAction(exception))
+                            coldActions.tryEmit(StoreReducerExceededTimeLimitAction(exception))
                         }
                     }
                 }
@@ -74,11 +75,12 @@ private fun <S : State> CoroutineScope.stateMachine(
 }
 
 
-class BaseStoreSeven<S : State>(
-    initialState: S,
+class BaseStoreEight<S : State>(
+    val initialState: S,
     private val reduce: Reduce<S>,
-    val config: StoreConfig
-) : Store<S> {
+    middlewares: List<Middleware<S>>?,
+    val config: StoreConfig,
+) {
 
     private val inputActionsChannel: Channel<Action> =
         Channel(capacity = Channel.UNLIMITED, onBufferOverflow = BufferOverflow.SUSPEND)
@@ -88,7 +90,12 @@ class BaseStoreSeven<S : State>(
     private val sendStatesChannel: Channel<S> =
         Channel(capacity = Channel.UNLIMITED, onBufferOverflow = BufferOverflow.SUSPEND)
 
-    private val inputActions: MutableSharedFlow<Action> = MutableSharedFlow(
+    private val mutableHotActions: MutableSharedFlow<Action> = MutableSharedFlow(
+        extraBufferCapacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.SUSPEND
+    )
+
+    private val mutableColdActions: MutableSharedFlow<Action> = MutableSharedFlow(
         extraBufferCapacity = Int.MAX_VALUE,
         onBufferOverflow = BufferOverflow.SUSPEND
     )
@@ -100,8 +107,14 @@ class BaseStoreSeven<S : State>(
         )
     }
 
-    override val states: Flow<S> = setStates
-    override val actions: Flow<Action> = inputActions
+    val states: Flow<S> = setStates
+    val hotActions: Flow<Action> = mutableHotActions
+    val coldActions: Flow<Action> = mutableColdActions
+
+    private val middlewares =
+        middlewares?.foldRight({ action: Action -> this.dispatcher(action) }) { middleware, dispatcher ->
+            middleware(::dispatch, ::state)(dispatcher)
+        }
 
     private val mutableStateChecker =
         if (config.debugMode) MutableStateChecker(initialState) else null
@@ -114,7 +127,7 @@ class BaseStoreSeven<S : State>(
             requestStates = requestStatesChannel,
             sendStates = sendStatesChannel,
             setStates = setStates,
-            relayActions = inputActions,
+            coldActions = mutableColdActions,
             reduce = reduce,
             config = config
         )
@@ -122,26 +135,26 @@ class BaseStoreSeven<S : State>(
         mutableStateChecker?.let { states.onEach(it::onStateChanged).launchIn(config.scope) }
     }
 
-    override fun dispatch(action: Action) {
-        if (action !is SkipReducer) {
-            if (config.debugMode) {
-                assertStateValues(action, state(), reduce)
-            }
-            inputActionsChannel.trySend(action)
+    private fun dispatcher(action: Action) {
+        if (config.debugMode) {
+            assertStateValues(action, state(), reduce)
         }
-        inputActions.tryEmit(action)
+        inputActionsChannel.trySend(action)
     }
 
-    override fun state(): S = setStates.value
+    fun dispatch(action: Action) {
+        mutableHotActions.tryEmit(action)
+        middlewares?.invoke(action) ?: dispatcher(action)
+    }
 
-    override suspend fun awaitState(): S {
+    fun state(): S = setStates.value
+
+    suspend fun awaitState(): S {
         requestStatesChannel.send(Unit)
         return sendStatesChannel.receive()
     }
 
-    override fun terminate() {
+    fun terminate() {
         config.scope.cancel()
     }
 }
-
-

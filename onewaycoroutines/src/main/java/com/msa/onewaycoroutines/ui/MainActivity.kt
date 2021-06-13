@@ -13,11 +13,13 @@ import com.msa.onewaycoroutines.common.ShowToastAction
 import com.msa.onewaycoroutines.databinding.ActivityMainBinding
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
-import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelSeven
+import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelEight
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,27 +27,14 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    /*private val viewModel by viewModels<CounterViewModel> {
-        BaseViewModelFactory {
-            CounterViewModel.getViewModel()
-        }
-    }*/
-
     var counter = 0
 
-    /*private val viewModel by viewModels<CounterViewModelFive> {
+    private val viewModel by viewModels<CounterViewModelEight> {
         BaseViewModelFactory {
-            CounterViewModelFive()
-        }
-    }*/
-
-    private val viewModel by viewModels<CounterViewModelSeven> {
-        BaseViewModelFactory {
-            CounterViewModelSeven()
+            CounterViewModelEight.get(this)
         }
     }
     private val scope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,8 +72,15 @@ class MainActivity : AppCompatActivity() {
             viewModel.states.collect(::setupViews)
         }
 
-        lifecycleScope.launchWhenResumed {
+        //Can be handled from a Middleware
+        /*lifecycleScope.launchWhenResumed {
             viewModel.eventActions.collect(::processEvents)
+        }*/
+
+        //Listen to changes of a specific value/part of the state
+        lifecycleScope.launchWhenStarted {
+            viewModel.states.map { it.updateOn }.distinctUntilChanged().collect {
+            }
         }
     }
 
@@ -99,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         when (action) {
 
             is ShowToastAction -> {
-                Toast.makeText(this, action.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "A ${action.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

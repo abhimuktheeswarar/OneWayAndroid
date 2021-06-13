@@ -7,7 +7,7 @@ import androidx.collection.LongSparseArray
 import androidx.collection.SparseArrayCompat
 import com.msa.core.Action
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.seven.Reduce
+import com.msa.onewaycoroutines.common.Reduce
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType

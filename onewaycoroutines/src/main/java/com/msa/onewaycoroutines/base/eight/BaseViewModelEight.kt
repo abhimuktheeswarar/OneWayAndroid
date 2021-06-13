@@ -1,56 +1,51 @@
-package com.msa.onewaycoroutines.base.seven
+package com.msa.onewaycoroutines.base.eight
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.msa.core.Action
-import com.msa.core.EventAction
-import com.msa.core.NavigateAction
-import com.msa.core.State
+import com.msa.core.*
 import com.msa.onewaycoroutines.BuildConfig
-import com.msa.onewaycoroutines.base.coroutineExceptionHandler
-import com.msa.onewaycoroutines.common.Reduce
-import com.msa.onewaycoroutines.common.StoreConfig
+import com.msa.onewaycoroutines.common.*
 import com.msa.onewaycoroutines.utilities.assertImmutability
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 
 /**
- * Created by Abhi Muktheeswarar on 12-June-2021.
+ * Created by Abhi Muktheeswarar on 13-June-2021.
  */
 
-open class BaseViewModelSeven<S : State>(
-    private val initialState: S,
-    protected val scope: CoroutineScope = CoroutineScope(SupervisorJob() + coroutineExceptionHandler),
+open class BaseViewModelEight<S : State>(
+    private val initialState: S? = null,
     private val reduce: Reduce<S>? = null,
-    store: BaseStoreSeven<S>? = null,
+    store: BaseStoreEight<S>? = null,
 ) : ViewModel() {
 
     protected val TAG by lazy<String> { javaClass.simpleName }
 
     private val store = store ?: createStore()
 
-    protected val actions: Flow<Action> = this.store.actions
+    protected val hotActions: Flow<Action> = this.store.hotActions
+    protected val coldActions: Flow<Action> = this.store.coldActions
+    protected val scope = this.store.config.scope
 
     val states: Flow<S> = this.store.states
-    val eventActions: Flow<EventAction> = actions.filterIsInstance()
-    val navigateActions: Flow<NavigateAction> = actions.filterIsInstance()
+    val eventActions: Flow<EventAction> = hotActions.filterIsInstance()
+    val navigateActions: Flow<NavigateAction> = hotActions.filterIsInstance()
 
     init {
 
         if (this.store.config.debugMode) {
             viewModelScope.launch(Dispatchers.Default) {
-                initialState::class.assertImmutability()
+                this@BaseViewModelEight.store.initialState::class.assertImmutability()
             }
         }
     }
 
-    private fun createStore(): BaseStoreSeven<S> = BaseStoreSeven(
-        initialState = initialState,
+    private fun createStore(): BaseStoreEight<S> = BaseStoreEight(
+        initialState = initialState!!,
         reduce = reduce ?: ::reduce,
+        middlewares = null,
         config = StoreConfig(scope, BuildConfig.DEBUG, 8)
     )
 
