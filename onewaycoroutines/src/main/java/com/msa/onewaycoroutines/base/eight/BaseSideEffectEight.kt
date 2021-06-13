@@ -4,6 +4,7 @@ import com.msa.core.Action
 import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.SideEffect
 import com.msa.core.State
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -11,15 +12,17 @@ import kotlinx.coroutines.flow.onEach
  * Created by Abhi Muktheeswarar on 13-June-2021.
  */
 
+@ExperimentalStdlibApi
 abstract class BaseSideEffectHotEight(
     private val store: BaseStoreEight<*>,
     protected val dispatchers: CoroutineDispatcherProvider,
 ) : SideEffect {
 
     protected val TAG: String = this.javaClass.simpleName
+    protected val scope: CoroutineScope = store.config.scope
 
     init {
-        store.hotActions.onEach(::handle).launchIn(store.config.scope)
+        store.hotActions.onEach(::handle).launchIn(scope)
     }
 
     fun dispatch(action: Action) {
@@ -39,9 +42,10 @@ abstract class BaseSideEffectColdEight(
 ) : SideEffect {
 
     protected val TAG: String = this.javaClass.simpleName
+    protected val scope: CoroutineScope = store.config.scope
 
     init {
-        store.coldActions.onEach(::handle).launchIn(store.config.scope)
+        store.coldActions.onEach(::handle).launchIn(scope)
     }
 
     fun dispatch(action: Action) {
@@ -61,10 +65,11 @@ abstract class BaseSideEffectHotColdEight(
 ) {
 
     protected val TAG: String = this.javaClass.simpleName
+    protected val scope: CoroutineScope = store.config.scope
 
     init {
-        store.hotActions.onEach(::handleHot).launchIn(store.config.scope)
-        store.coldActions.onEach(::handleCold).launchIn(store.config.scope)
+        store.hotActions.onEach(::handleHot).launchIn(scope)
+        store.coldActions.onEach(::handleCold).launchIn(scope)
     }
 
     fun dispatch(action: Action) {
