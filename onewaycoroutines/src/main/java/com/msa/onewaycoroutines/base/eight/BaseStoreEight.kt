@@ -1,11 +1,9 @@
 package com.msa.onewaycoroutines.base.eight
 
-import android.util.Log
 import com.msa.core.Action
 import com.msa.core.State
 import com.msa.core.name
 import com.msa.onewaycoroutines.base.ExceededTimeLimitToComputeNewStatException
-import com.msa.onewaycoroutines.base.TAG_STORE
 import com.msa.onewaycoroutines.common.Middleware
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
@@ -48,12 +46,13 @@ private fun <S : State> CoroutineScope.stateMachine(
             inputActions.onReceive { action ->
 
                 measureTimeMillis {
-                    Log.d(TAG_STORE, "onReceive action = ${action.name()}")
+                    //Log.d(TAG_STORE, "onReceive action = ${action.name()}")
                     state = reduce(action, state)
                     setStates.emit(state)
                     coldActions.tryEmit(action)
 
                 }.let { timeTakenToComputeNewState ->
+                    //Log.i(TAG_STORE, "Took ${timeTakenToComputeNewState}ms for ${action.name()} | $state")
                     if (timeTakenToComputeNewState > config.reducerTimeLimitInMilliSeconds) {
                         val exception =
                             ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
@@ -67,7 +66,7 @@ private fun <S : State> CoroutineScope.stateMachine(
             }
 
             requestStates.onReceive {
-                Log.d(TAG_STORE, "onReceive Request State = $state")
+                //Log.d(TAG_STORE, "onReceive Request State = $state")
                 sendStates.send(state)
             }
         }

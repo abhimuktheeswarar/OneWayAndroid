@@ -20,6 +20,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,12 +31,26 @@ class MainActivity : AppCompatActivity() {
 
     var counter = 0
 
+    /*private val viewModel by viewModels<CounterViewModelSeven> {
+        BaseViewModelFactory {
+            CounterViewModelSeven()
+        }
+    }*/
+
     private val viewModel by viewModels<CounterViewModelEight> {
         BaseViewModelFactory {
             CounterViewModelEight.get(this)
         }
     }
+
     private val scope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
+
+    private var start = 0L
+
+    private val times = arrayListOf<Long>()
+    val decimalFormat = DecimalFormat("#.##").apply {
+        roundingMode = RoundingMode.CEILING
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.buttonDecrement.setOnClickListener {
+            start = System.currentTimeMillis()
             viewModel.dispatch(CounterAction.DecrementAction)
             /*lifecycleScope.launch {
                 repeat(25) {
@@ -51,6 +68,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.buttonIncrement.setOnClickListener {
+            start = System.currentTimeMillis()
             viewModel.dispatch(CounterAction.IncrementAction)
             /*scope.launch {
                 repeat(25) {
@@ -61,6 +79,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.buttonReset.setOnClickListener {
+            start = 0
+            times.clear()
             viewModel.dispatch(CounterAction.ResetAction)
         }
 
@@ -85,7 +105,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupViews(state: CounterState) {
-        //Log.d(TAG, "$counter setupViews = ${state.counter}")
+        Log.d(TAG, "$counter setupViews = ${state.counter}")
+        if (start != 0L) {
+            val consumedTime = System.currentTimeMillis() - start
+            times.add(consumedTime)
+            binding.textAverageTime.text = "${decimalFormat.format(times.average())}ms"
+        }
+
         counter++
         binding.textCount.text = state.counter.toString()
     }

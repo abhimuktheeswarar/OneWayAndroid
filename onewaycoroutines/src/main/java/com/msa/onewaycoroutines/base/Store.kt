@@ -24,3 +24,4 @@ interface Store<S : State> {
 
 const val TAG_STORE = "Store"
 const val TAG_REDUCER = "Reducer"
+const val TAG_MIDDLEWARE = "Middleware"

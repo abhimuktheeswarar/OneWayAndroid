@@ -72,21 +72,6 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
         }
     }
 
-    override fun reduce(action: Action, state: CounterState): CounterState = with(state) {
-        when (action) {
-
-            is CounterAction.IncrementAction -> copy(counter = state.counter + 1)
-
-            is CounterAction.DecrementAction -> copy(counter = counter - 1)
-
-            is CounterAction.ForceUpdateAction -> copy(counter = action.count)
-
-            is CounterAction.ResetAction -> copy(counter = 0, updateOn = System.currentTimeMillis())
-
-            else -> state
-        }
-    }
-
     companion object {
 
         fun get(context: Context): CounterViewModelEight {

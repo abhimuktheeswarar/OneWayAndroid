@@ -10,6 +10,7 @@ import com.msa.core.name
 import com.msa.onewaycoroutines.base.eight.BaseMiddleware
 import com.msa.onewaycoroutines.common.Dispatcher
 import com.msa.onewaycoroutines.common.GetState
+import com.msa.onewaycoroutines.common.ShowToastAction
 import com.msa.onewaycoroutines.entities.CounterAction
 import kotlinx.coroutines.CoroutineScope
 
@@ -38,7 +39,11 @@ class EventMiddleware(
 
             is CounterAction.ResetAction -> {
                 next(action)
-                Toast.makeText(context, "Reset completed", Toast.LENGTH_SHORT).show()
+                dispatch(ShowToastAction("Reset completed"))
+            }
+
+            is ShowToastAction -> {
+                Toast.makeText(context, action.message, Toast.LENGTH_SHORT).show()
             }
 
             else -> next(action)
