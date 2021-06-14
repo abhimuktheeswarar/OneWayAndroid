@@ -59,13 +59,23 @@
         app:layout_constraintTop_toBottomOf="@id/button_reset" />
 
     <TextView
+        android:id="@+id/text_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="NA"
+        app:layout_constraintEnd_toStartOf="@id/text_average_time"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_show_toast" />
+
+    <TextView
         android:id="@+id/text_average_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="NA"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/text_time"
         app:layout_constraintTop_toBottomOf="@id/button_show_toast" />
 
 

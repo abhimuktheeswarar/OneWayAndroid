@@ -3,6 +3,8 @@ package com.msa.onewaycoroutines.ui.viewmodels
 import android.util.Log
 import com.msa.core.Action
 import com.msa.core.SideEffect
+import com.msa.core.name
+import com.msa.onewaycoroutines.base.TAG_REDUCER
 import com.msa.onewaycoroutines.base.seven.BaseViewModelSeven
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
@@ -64,6 +66,7 @@ class CounterViewModelSeven : BaseViewModelSeven<CounterState>(CounterState()), 
     }
 
     override fun reduce(action: Action, state: CounterState): CounterState = with(state) {
+        Log.d(TAG_REDUCER, "${action.name()} | $state | ${Thread.currentThread()}")
         when (action) {
 
             is CounterAction.IncrementAction -> copy(counter = state.counter + 1)

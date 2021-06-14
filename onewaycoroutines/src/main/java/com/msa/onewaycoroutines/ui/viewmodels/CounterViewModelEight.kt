@@ -7,6 +7,7 @@ import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.SideEffect
 import com.msa.onewaycoroutines.base.eight.BaseStoreEight
 import com.msa.onewaycoroutines.base.eight.BaseViewModelEight
+import com.msa.onewaycoroutines.common.combineReducers
 import com.msa.onewaycoroutines.common.getDefaultStoreConfig
 import com.msa.onewaycoroutines.common.skipMiddleware
 import com.msa.onewaycoroutines.domain.middlewares.EventMiddleware
@@ -78,7 +79,7 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
 
             val initialState = CounterState()
             val config = getDefaultStoreConfig()
-            val reduce = CounterStateReducerEight::reduce
+            //val reduce = CounterStateReducerEight::reduce
             val coroutineDispatcherProvider =
                 CoroutineDispatcherProvider(config.scope.coroutineContext)
 
@@ -87,10 +88,16 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
 
             val middlewares = listOf(eventMiddleware, skipMiddleware)
 
+            /*val combinedReducer = reducers.fold(initialState) { state: CounterState, reduce ->
+                reduce(action, state)
+            }*/
+
+            val rootReducer = combineReducers(CounterStateReducerEight.getReducers())
+
             val store = BaseStoreEight(
                 initialState = initialState,
                 config = config,
-                reduce = reduce,
+                reduce = rootReducer,
                 middlewares = middlewares
             )
 
@@ -102,3 +109,4 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
         }
     }
 }
+

@@ -116,7 +116,7 @@ class BaseStoreEight<S : State>(
         }
 
     private val mutableStateChecker =
-        if (config.debugMode) MutableStateChecker(initialState) else null
+        if (config.debugMode && config.mutableStateChecker) MutableStateChecker(initialState) else null
 
     init {
 
@@ -135,7 +135,7 @@ class BaseStoreEight<S : State>(
     }
 
     private fun dispatcher(action: Action) {
-        if (config.debugMode) {
+        if (config.debugMode && config.assertStateValues) {
             assertStateValues(action, state(), reduce)
         }
         inputActionsChannel.trySend(action)

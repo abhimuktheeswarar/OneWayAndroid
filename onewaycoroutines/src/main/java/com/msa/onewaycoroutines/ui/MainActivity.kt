@@ -108,6 +108,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "$counter setupViews = ${state.counter}")
         if (start != 0L) {
             val consumedTime = System.currentTimeMillis() - start
+            binding.textTime.text = "${decimalFormat.format(consumedTime)}ms"
             times.add(consumedTime)
             binding.textAverageTime.text = "${decimalFormat.format(times.average())}ms"
         }

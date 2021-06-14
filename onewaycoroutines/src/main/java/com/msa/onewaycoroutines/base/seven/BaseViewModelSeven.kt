@@ -51,7 +51,9 @@ open class BaseViewModelSeven<S : State>(
     private fun createStore(): BaseStoreSeven<S> = BaseStoreSeven(
         initialState = initialState,
         reduce = reduce ?: ::reduce,
-        config = StoreConfig(scope, BuildConfig.DEBUG, 8)
+        config = StoreConfig(scope = scope,
+            debugMode = BuildConfig.DEBUG,
+            reducerTimeLimitInMilliSeconds = 8)
     )
 
     fun state() = store.state()
