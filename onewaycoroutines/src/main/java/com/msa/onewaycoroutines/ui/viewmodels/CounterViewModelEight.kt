@@ -92,7 +92,7 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
                 reduce(action, state)
             }*/
 
-            val rootReducer = combineReducers(CounterStateReducerEight.getReducers())
+            val rootReducer = combineReducers(*CounterStateReducerEight.getReducers())
 
             val store = BaseStoreEight(
                 initialState = initialState,

@@ -61,7 +61,7 @@ object CounterStateReducerEight : Reducer<CounterState> {
         }
     }
 
-    fun getReducers() = listOf(r21, r22, r23)
+    fun getReducers() = arrayOf(r21, r22, r23)
 
     override fun reduce(action: Action, state: CounterState): CounterState {
         Log.d("CSRE", "reduce action = ${action.name()} | $state | ${Thread.currentThread()}")

@@ -52,34 +52,7 @@ val skipMiddleware: Middleware<State> = { _, _ ->
     }
 }
 
-/*
-val c1: CombinedReducer<CounterState> = { _ ->
-
-    { reducer ->
-
-        { action, state ->
-
-            when (action) {
-
-                is CounterAction.IncrementAction -> state.copy(counter = state.counter + 1)
-
-                else -> state
-            }
-        }
-    }
-}
-*/
-
 fun <S : State> combineReducers(vararg reducers: Reduce<S>): Reduce<S> =
-    { action, state ->
-        Log.d("combineReducers", "outer:  ${action.name()} | ${state}")
-        reducers.fold(state, { s, reducer ->
-            Log.d("combineReducers", "inner:  ${action.name()} | ${s}")
-            reducer(action, s)
-        })
-    }
-
-fun <S : State> combineReducers(reducers: List<Reduce<S>>): Reduce<S> =
     { action, state ->
         Log.d("combineReducers", "outer:  ${action.name()} | ${state}")
         reducers.fold(state, { s, reducer ->
