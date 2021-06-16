@@ -1,7 +1,6 @@
 package com.msa.onewaycoroutines.ui.viewmodels
 
 import android.content.Context
-import android.util.Log
 import com.msa.core.Action
 import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.SideEffect
@@ -61,14 +60,14 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
 
             is CounterAction.ResetAction -> {
 
-                scope.launch {
+                /*scope.launch {
                     val s = state()
                     val gS = awaitState()
                     Log.d(
                         TAG,
                         "state = $s vs getState = $gS"
                     )
-                }
+                }*/
             }
         }
     }
@@ -98,7 +97,7 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
                 initialState = initialState,
                 config = config,
                 reduce = rootReducer,
-                middlewares = middlewares
+                middlewares = null
             )
 
             CounterSideEffectEight(store, coroutineDispatcherProvider)

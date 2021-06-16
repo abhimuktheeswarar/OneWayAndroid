@@ -21,20 +21,28 @@ object CounterStateReducerEight : Reducer<CounterState> {
     /**
      * To use with [combineReducers].
      */
-    val r21 = reducerForAction<CounterAction.IncrementAction, CounterState> { action, state ->
-        Log.d(TAG_REDUCER, "r21 ${action.name()} = $state")
-        state.copy(counter = state.counter + 1)
-    }
+    private val r21 =
+        reducerForAction<CounterAction.IncrementAction, CounterState> { action, state ->
+            //Log.d(TAG_REDUCER, "r21 ${action.name()} = $state")
+            state.copy(counter = state.counter + 1)
+        }
 
-    val r22 = reducerForAction<CounterAction.DecrementAction, CounterState> { action, state ->
-        Log.d(TAG_REDUCER, "r22 ${action.name()} = $state")
-        state.copy(counter = state.counter - 1)
-    }
+    private val r22 =
+        reducerForAction<CounterAction.DecrementAction, CounterState> { action, state ->
+            //Log.d(TAG_REDUCER, "r22 ${action.name()} = $state")
+            state.copy(counter = state.counter - 1)
+        }
 
-    val r23 = reducerForAction<CounterAction.ResetAction, CounterState> { action, state ->
-        Log.d(TAG_REDUCER, "r23 ${action.name()} = $state")
+    private val r23 = reducerForAction<CounterAction.ResetAction, CounterState> { action, state ->
+        //Log.d(TAG_REDUCER, "r23 ${action.name()} = $state")
         state.copy(counter = 0)
     }
+
+    private val r24 =
+        reducerForAction<CounterAction.ForceUpdateAction, CounterState> { action, state ->
+            //Log.d(TAG_REDUCER, "r23 ${action.name()} = $state")
+            state.copy(counter = action.count)
+        }
 
     /**
      * Not recommended to use with combineReducers. Use [reducerForAction].
@@ -61,10 +69,10 @@ object CounterStateReducerEight : Reducer<CounterState> {
         }
     }
 
-    fun getReducers() = arrayOf(r21, r22, r23)
+    fun getReducers() = arrayOf(r21, r22, r23, r24)
 
     override fun reduce(action: Action, state: CounterState): CounterState {
-        Log.d("CSRE", "reduce action = ${action.name()} | $state | ${Thread.currentThread()}")
+        //Log.d("CSRE", "reduce action = ${action.name()} | $state | ${Thread.currentThread()}")
         return when (action) {
 
             is CounterAction.IncrementAction -> state.copy(counter = state.counter + 1)

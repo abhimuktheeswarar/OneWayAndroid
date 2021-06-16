@@ -1,10 +1,8 @@
 package com.msa.onewaycoroutines.common
 
-import android.util.Log
 import com.msa.core.Action
 import com.msa.core.SkipReducer
 import com.msa.core.State
-import com.msa.core.name
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -54,9 +52,9 @@ val skipMiddleware: Middleware<State> = { _, _ ->
 
 fun <S : State> combineReducers(vararg reducers: Reduce<S>): Reduce<S> =
     { action, state ->
-        Log.d("combineReducers", "outer:  ${action.name()} | ${state}")
+        //Log.d("combineReducers", "outer:  ${action.name()} | ${state}")
         reducers.fold(state, { s, reducer ->
-            Log.d("combineReducers", "inner:  ${action.name()} | ${s}")
+            //Log.d("combineReducers", "inner:  ${action.name()} | ${s}")
             reducer(action, s)
         })
     }
