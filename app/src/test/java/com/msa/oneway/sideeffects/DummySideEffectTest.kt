@@ -54,7 +54,7 @@ class DummySideEffectTest {
     private val compositeDisposable by lazy { CompositeDisposable() }
 
 
-    private val store by lazy { HomeStore(HomeScreenState(), threadExecutorService) }
+    private val store by lazy { HomeStore(initialState = HomeScreenState()) }
 
     @Before
     fun setup() {

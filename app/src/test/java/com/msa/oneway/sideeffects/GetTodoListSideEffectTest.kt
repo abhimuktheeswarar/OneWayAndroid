@@ -22,6 +22,7 @@ import io.mockk.mockkStatic
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.TestScheduler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Before
 import org.junit.Rule
@@ -94,6 +95,7 @@ class GetTodoListSideEffectTest {
             todoRepository = todoRepository,
             resourceRepository = resourceRepository,
             threadExecutorService = threadExecutorService,
+            scope = CoroutineScope(coroutineDispatcherProvider.coroutineContext),
             coroutineDispatcherProvider = coroutineDispatcherProvider
         )
 
