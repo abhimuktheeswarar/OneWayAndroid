@@ -7,7 +7,7 @@ import com.msa.core.Action
 import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.State
 import com.msa.core.name
-import com.msa.onewaycoroutines.base.eight.BaseMiddleware
+import com.msa.onewaycoroutines.common.BaseMiddleware
 import com.msa.onewaycoroutines.common.Dispatcher
 import com.msa.onewaycoroutines.common.GetState
 import com.msa.onewaycoroutines.common.ShowToastAction

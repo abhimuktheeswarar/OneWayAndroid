@@ -1,11 +1,8 @@
-package com.msa.onewaycoroutines.base.eight
+package com.msa.onewaycoroutines.common
 
 import com.msa.core.Action
 import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.State
-import com.msa.onewaycoroutines.common.Dispatcher
-import com.msa.onewaycoroutines.common.GetState
-import com.msa.onewaycoroutines.common.Middleware
 import kotlinx.coroutines.CoroutineScope
 
 /**

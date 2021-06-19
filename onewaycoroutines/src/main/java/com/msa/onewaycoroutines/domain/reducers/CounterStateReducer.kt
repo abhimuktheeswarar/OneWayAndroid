@@ -14,7 +14,7 @@ import com.msa.onewaycoroutines.entities.CounterState
  * Created by Abhi Muktheeswarar on 13-June-2021.
  */
 
-object CounterStateReducerEight : Reducer<CounterState> {
+object CounterStateReducer : Reducer<CounterState> {
 
     private val TAG: String = javaClass.simpleName
 

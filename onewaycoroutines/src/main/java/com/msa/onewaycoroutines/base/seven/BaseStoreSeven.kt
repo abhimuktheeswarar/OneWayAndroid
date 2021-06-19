@@ -125,7 +125,7 @@ class BaseStoreSeven<S : State>(
     override fun dispatch(action: Action) {
         if (action !is SkipReducer) {
             if (config.debugMode) {
-                assertStateValues(action, state(), reduce)
+                assertStateValues(action, state(), reduce, mutableStateChecker)
             }
             inputActionsChannel.trySend(action)
         }

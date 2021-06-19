@@ -18,7 +18,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlin.system.measureTimeMillis
@@ -36,7 +35,6 @@ private fun <S : State> CoroutineScope.stateMachine(
     coldActions: MutableSharedFlow<Action>,
     reduce: Reduce<S>,
     config: StoreConfig,
-    stateSharedFlow: MutableSharedFlow<S>,
 ) = launch {
 
     var state = initialState
@@ -46,14 +44,6 @@ private fun <S : State> CoroutineScope.stateMachine(
         select<Unit> {
 
             inputActions.onReceive { action ->
-
-                /*  val newState = reduce(action, state)
-                  if (newState != state) {
-                      stateSharedFlow.emit(newState)
-                      state = newState
-                      setStates.emit(state)
-                      coldActions.emit(action)
-                  }*/
 
                 measureTimeMillis {
                     //Log.d(TAG_STORE, "onReceive action = ${action.name()}")
@@ -110,17 +100,9 @@ class BaseStoreEight<S : State>(
 
     private val setStates: MutableStateFlow<S> = MutableStateFlow(initialState)
 
-    private val stateSharedFlow = MutableSharedFlow<S>(
-        replay = 1,
-        extraBufferCapacity = 63,
-        onBufferOverflow = BufferOverflow.SUSPEND,
-    ).apply { tryEmit(initialState) }
-
     val states: Flow<S> = setStates
     val hotActions: Flow<Action> = mutableHotActions
     val coldActions: Flow<Action> = mutableColdActions
-
-    val flow: Flow<S> = stateSharedFlow.asSharedFlow()
 
     private val middlewares =
         middlewares?.foldRight({ action: Action -> this.dispatcher(action) }) { middleware, dispatcher ->
@@ -140,16 +122,13 @@ class BaseStoreEight<S : State>(
             setStates = setStates,
             coldActions = mutableColdActions,
             reduce = reduce,
-            config = config,
-            stateSharedFlow = stateSharedFlow
+            config = config
         )
-
-        //mutableStateChecker?.let { states.onEach(it::onStateChanged).launchIn(config.scope) }
     }
 
     private fun dispatcher(action: Action) {
         if (config.debugMode && config.assertStateValues) {
-            assertStateValues(action, state(), reduce)
+            assertStateValues(action, state(), reduce, mutableStateChecker)
         }
         inputActionsChannel.trySend(action)
     }
@@ -159,8 +138,7 @@ class BaseStoreEight<S : State>(
         middlewares?.invoke(action) ?: dispatcher(action)
     }
 
-    //fun state(): S = setStates.value
-    fun state(): S = stateSharedFlow.replayCache.last()
+    fun state(): S = setStates.value
 
     suspend fun awaitState(): S {
         requestStatesChannel.send(Unit)

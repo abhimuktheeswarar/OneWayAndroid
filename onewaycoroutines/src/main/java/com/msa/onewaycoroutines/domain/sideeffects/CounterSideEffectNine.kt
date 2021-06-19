@@ -5,8 +5,8 @@ import com.msa.core.Action
 import com.msa.core.ControlledRunner
 import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.name
-import com.msa.onewaycoroutines.base.eight.BaseSideEffectHotColdEight
-import com.msa.onewaycoroutines.base.eight.BaseStoreEight
+import com.msa.onewaycoroutines.base.nine.BaseSideEffectHotColdNine
+import com.msa.onewaycoroutines.base.nine.BaseStoreNine
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
 
@@ -14,10 +14,10 @@ import com.msa.onewaycoroutines.entities.CounterState
  * Created by Abhi Muktheeswarar on 13-June-2021.
  */
 
-class CounterSideEffectEight(
-    store: BaseStoreEight<*>,
+class CounterSideEffectNine(
+    store: BaseStoreNine<*>,
     dispatchers: CoroutineDispatcherProvider,
-) : BaseSideEffectHotColdEight(store, dispatchers) {
+) : BaseSideEffectHotColdNine(store, dispatchers) {
 
     private val controlledRunner by lazy { ControlledRunner<Int>() }
 

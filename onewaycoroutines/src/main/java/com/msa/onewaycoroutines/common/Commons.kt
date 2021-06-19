@@ -29,6 +29,7 @@ class StoreConfig(
     val assertStateValues: Boolean = debugMode,
     val mutableStateChecker: Boolean = debugMode,
     val reducerTimeLimitInMilliSeconds: Long = 8L,
+    val synchronous: Boolean = false,
 )
 
 fun getDefaultScope() =

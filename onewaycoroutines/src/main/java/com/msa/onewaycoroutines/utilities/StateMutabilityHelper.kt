@@ -106,7 +106,12 @@ internal class MutableStateChecker<S : State>(val initialState: S) {
     }
 }
 
-internal fun <S : State> assertStateValues(action: Action, currentState: S, reduce: Reduce<S>) {
+internal fun <S : State> assertStateValues(
+    action: Action,
+    currentState: S,
+    reduce: Reduce<S>,
+    mutableStateChecker: MutableStateChecker<S>?,
+) {
     val firstState = reduce(action, currentState)
     val secondState = reduce(action, currentState)
 
@@ -136,4 +141,6 @@ internal fun <S : State> assertStateValues(action: Action, currentState: S, redu
             )
         }
     }
+
+    mutableStateChecker?.onStateChanged(firstState)
 }

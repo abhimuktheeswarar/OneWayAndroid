@@ -1,22 +1,23 @@
-package com.msa.onewaycoroutines.base.eight
+package com.msa.onewaycoroutines.base.nine
 
 import androidx.lifecycle.ViewModel
 import com.msa.core.*
 import com.msa.onewaycoroutines.BuildConfig
 import com.msa.onewaycoroutines.common.*
 import com.msa.onewaycoroutines.utilities.assertImmutability
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 
 /**
- * Created by Abhi Muktheeswarar on 13-June-2021.
+ * Created by Abhi Muktheeswarar on 16-June-2021.
  */
 
-open class BaseViewModelEight<S : State>(
+open class BaseViewModelNine<S : State>(
     private val initialState: S? = null,
     private val reduce: Reduce<S>? = null,
-    store: BaseStoreEight<S>? = null,
+    store: BaseStoreNine<S>? = null,
 ) : ViewModel() {
 
     protected val TAG by lazy<String> { javaClass.simpleName }
@@ -34,22 +35,22 @@ open class BaseViewModelEight<S : State>(
     init {
 
         if (this.store.config.debugMode) {
-            this.store.config.scope.launch {
-                this@BaseViewModelEight.store.initialState::class.assertImmutability()
+            this.store.config.scope.launch(Dispatchers.Default) {
+                this@BaseViewModelNine.store.initialState::class.assertImmutability()
             }
         }
     }
 
-    private fun createStore(): BaseStoreEight<S> = BaseStoreEight(
+    private fun createStore(): BaseStoreNine<S> = BaseStoreNine(
         initialState = initialState!!,
         reduce = reduce ?: ::reduce,
         middlewares = null,
-        config = StoreConfig(scope = scope,
+        config = StoreConfig(scope = getDefaultScope(),
             debugMode = BuildConfig.DEBUG,
             reducerTimeLimitInMilliSeconds = 8)
     )
 
-    fun state() = store.state()
+    fun state() = store.state
 
     suspend fun awaitState() = store.awaitState()
 

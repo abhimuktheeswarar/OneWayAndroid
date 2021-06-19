@@ -13,13 +13,14 @@ import com.msa.onewaycoroutines.common.ShowToastAction
 import com.msa.onewaycoroutines.databinding.ActivityMainBinding
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
-import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelEight
+import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelNine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
@@ -31,15 +32,15 @@ class MainActivity : AppCompatActivity() {
 
     var counter = 0
 
-    /*private val viewModel by viewModels<CounterViewModelSeven> {
+    /*private val viewModel by viewModels<CounterViewModelEight> {
         BaseViewModelFactory {
-            CounterViewModelSeven()
+            CounterViewModelEight.get(this)
         }
     }*/
 
-    private val viewModel by viewModels<CounterViewModelEight> {
+    private val viewModel by viewModels<CounterViewModelNine> {
         BaseViewModelFactory {
-            CounterViewModelEight.get(this)
+            CounterViewModelNine.get(this)
         }
     }
 
@@ -69,13 +70,13 @@ class MainActivity : AppCompatActivity() {
 
         binding.buttonIncrement.setOnClickListener {
             start = System.currentTimeMillis()
-            viewModel.dispatch(CounterAction.IncrementAction)
-            /*scope.launch {
+            //viewModel.dispatch(CounterAction.IncrementAction)
+            scope.launch {
                 repeat(25) {
                     viewModel.dispatch(CounterAction.IncrementAction)
-                    viewModel.dispatch(CounterAction.ForceUpdateAction(viewModel.awaitState().counter - 1))
+                    //viewModel.dispatch(CounterAction.ForceUpdateAction(viewModel.awaitState().counter - 1))
                 }
-            }*/
+            }
         }
 
         binding.buttonReset.setOnClickListener {

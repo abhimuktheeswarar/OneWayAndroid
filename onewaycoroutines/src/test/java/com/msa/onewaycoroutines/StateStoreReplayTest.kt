@@ -1,11 +1,12 @@
 package com.msa.onewaycoroutines
 
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.eight.BaseStoreEight
+import com.msa.onewaycoroutines.base.nine.BaseStoreNine
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.entities.CounterAction
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import org.junit.Assert
@@ -15,17 +16,21 @@ import org.junit.Test
  * Created by Abhi Muktheeswarar on 16-June-2021.
  */
 
-class StoreTest {
+class StateStoreReplayTest {
 
     data class TestState(val count: Int = 0) : State
-
-    private var count = 0
 
     @Test
     fun replayTest() = runBlocking {
         repeat(1) {
             singleReplayTestIteration(N = 200, subscribers = 1)
         }
+        Unit
+    }
+
+    @Test
+    fun replayLargeTest() = runBlocking {
+        singleReplayTestIteration(N = 100_000, subscribers = 10)
         Unit
     }
 
@@ -51,7 +56,7 @@ class StoreTest {
                     debugMode = false,
                     reducerTimeLimitInMilliSeconds = 6000)
             val store =
-                BaseStoreEight(initialState = TestState(),
+                BaseStoreNine(initialState = TestState(),
                     reduce = reduce,
                     config = storeConfig,
                     middlewares = null)
@@ -76,4 +81,52 @@ class StoreTest {
             }
             scope.cancel()
         }
+
+    /**
+     * Tests that cancellation during first emit in Store .State flow doesn't block other collectors forever
+     * Will fail if stateChannel subscription will be collected without finally block in Store.flow builder
+     */
+    @Test(timeout = 10_000)
+    fun testProperCancellation() = runBlocking {
+        val scope = CoroutineScope(Dispatchers.Default + Job())
+        val reduce: Reduce<TestState> = { action, state ->
+            when (action) {
+                is CounterAction.IncrementAction -> state.copy(count = state.count + 1)
+                else -> state
+            }
+        }
+        val storeConfig =
+            StoreConfig(
+                scope = scope,
+                debugMode = false,
+                reducerTimeLimitInMilliSeconds = 6000)
+        val store =
+            BaseStoreNine(initialState = TestState(),
+                reduce = reduce,
+                config = storeConfig,
+                middlewares = null)
+
+        val collectJob = async(start = CoroutineStart.UNDISPATCHED) {
+            store.states.collect {
+                delay(Long.MAX_VALUE)
+            }
+        }
+        collectJob.cancel()
+
+        val N = 200
+        coroutineScope {
+            async(start = CoroutineStart.UNDISPATCHED) {
+                store.states.takeWhile { it.count < N }.collect {
+                    // no-op
+                }
+            }
+            async {
+                repeat(N) {
+                    store.dispatch(CounterAction.IncrementAction)
+                }
+            }
+        }
+        scope.cancel()
+        Unit
+    }
 }

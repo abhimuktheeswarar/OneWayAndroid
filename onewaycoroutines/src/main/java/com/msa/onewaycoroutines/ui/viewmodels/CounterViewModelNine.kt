@@ -4,14 +4,14 @@ import android.content.Context
 import com.msa.core.Action
 import com.msa.core.CoroutineDispatcherProvider
 import com.msa.core.SideEffect
-import com.msa.onewaycoroutines.base.eight.BaseStoreEight
-import com.msa.onewaycoroutines.base.eight.BaseViewModelEight
+import com.msa.onewaycoroutines.base.nine.BaseStoreNine
+import com.msa.onewaycoroutines.base.nine.BaseViewModelNine
 import com.msa.onewaycoroutines.common.combineReducers
 import com.msa.onewaycoroutines.common.getDefaultStoreConfig
 import com.msa.onewaycoroutines.common.skipMiddleware
 import com.msa.onewaycoroutines.domain.middlewares.EventMiddleware
 import com.msa.onewaycoroutines.domain.reducers.CounterStateReducer
-import com.msa.onewaycoroutines.domain.sideeffects.CounterSideEffectEight
+import com.msa.onewaycoroutines.domain.sideeffects.CounterSideEffectNine
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
 import kotlinx.coroutines.flow.launchIn
@@ -22,8 +22,8 @@ import kotlinx.coroutines.launch
  * Created by Abhi Muktheeswarar on 11-June-2021.
  */
 
-class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
-    BaseViewModelEight<CounterState>(store = store), SideEffect {
+class CounterViewModelNine(store: BaseStoreNine<CounterState>) :
+    BaseViewModelNine<CounterState>(store = store), SideEffect {
 
     init {
         hotActions.onEach(::handle).launchIn(scope)
@@ -74,7 +74,7 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
 
     companion object {
 
-        fun get(context: Context): CounterViewModelEight {
+        fun get(context: Context): CounterViewModelNine {
 
             val initialState = CounterState()
             val config = getDefaultStoreConfig()
@@ -93,16 +93,16 @@ class CounterViewModelEight(store: BaseStoreEight<CounterState>) :
 
             val rootReducer = combineReducers(*CounterStateReducer.getReducers())
 
-            val store = BaseStoreEight(
+            val store = BaseStoreNine(
                 initialState = initialState,
                 config = config,
                 reduce = rootReducer,
-                middlewares = null
+                middlewares = middlewares
             )
 
-            CounterSideEffectEight(store, coroutineDispatcherProvider)
+            CounterSideEffectNine(store, coroutineDispatcherProvider)
 
-            return CounterViewModelEight(
+            return CounterViewModelNine(
                 store = store
             )
         }
