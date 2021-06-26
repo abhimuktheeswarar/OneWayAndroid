@@ -3,7 +3,7 @@
 package com.msa.onewaycoroutines
 
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.nine.BaseStoreNine
+import com.msa.onewaycoroutines.base.eight.BaseStoreEight
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.entities.CounterAction
@@ -23,13 +23,13 @@ class SetStateWithStateOrderingTest {
     private fun getStore(
         scope: CoroutineScope,
         reduce: Reduce<OrderingState>,
-    ): BaseStoreNine<OrderingState> {
+    ): BaseStoreEight<OrderingState> {
         val storeConfig =
             StoreConfig(
                 scope = scope,
                 debugMode = false,
                 synchronous = false)
-        return BaseStoreNine(initialState = OrderingState(),
+        return BaseStoreEight(initialState = OrderingState(),
             reduce = reduce,
             config = storeConfig,
             middlewares = null)
@@ -149,7 +149,7 @@ class SetStateWithStateOrderingTest {
             val count = store.awaitState().count
             store.dispatch(CounterAction.ForceUpdateAction(count))
         }
-        println(store.state.count)
+        println(store.state().count)
         assertMatches(calls, "w1", "s1", "s2", "s3", "w2")
     }
 

@@ -44,7 +44,7 @@ open class BaseViewModelEight<S : State>(
         initialState = initialState!!,
         reduce = reduce ?: ::reduce,
         middlewares = null,
-        config = StoreConfig(scope = scope,
+        config = StoreConfig(scope = getDefaultScope(),
             debugMode = BuildConfig.DEBUG,
             reducerTimeLimitInMilliSeconds = 8)
     )

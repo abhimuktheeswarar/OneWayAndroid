@@ -13,7 +13,7 @@ import com.msa.onewaycoroutines.common.ShowToastAction
 import com.msa.onewaycoroutines.databinding.ActivityMainBinding
 import com.msa.onewaycoroutines.entities.CounterAction
 import com.msa.onewaycoroutines.entities.CounterState
-import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelNine
+import com.msa.onewaycoroutines.ui.viewmodels.CounterViewModelEight
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -32,17 +32,17 @@ class MainActivity : AppCompatActivity() {
 
     var counter = 0
 
-    /*private val viewModel by viewModels<CounterViewModelEight> {
+    private val viewModel by viewModels<CounterViewModelEight> {
         BaseViewModelFactory {
             CounterViewModelEight.get(this)
         }
-    }*/
+    }
 
-    private val viewModel by viewModels<CounterViewModelNine> {
+    /*private val viewModel by viewModels<CounterViewModelNine> {
         BaseViewModelFactory {
             CounterViewModelNine.get(this)
         }
-    }
+    }*/
 
     private val scope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
 
@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupViews(state: CounterState) {
-        Log.d(TAG, "$counter setupViews = ${state.counter}")
+        Log.d(TAG, "$counter setupViews = ${state.counter} | ${viewModel.state().counter}")
         if (start != 0L) {
             val consumedTime = System.currentTimeMillis() - start
             binding.textTime.text = "${decimalFormat.format(consumedTime)}ms"

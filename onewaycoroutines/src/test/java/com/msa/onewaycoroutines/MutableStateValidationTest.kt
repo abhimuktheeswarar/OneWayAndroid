@@ -2,8 +2,8 @@ package com.msa.onewaycoroutines
 
 import com.msa.core.Action
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.nine.BaseStoreNine
-import com.msa.onewaycoroutines.base.nine.BaseViewModelNine
+import com.msa.onewaycoroutines.base.eight.BaseStoreEight
+import com.msa.onewaycoroutines.base.eight.BaseViewModelEight
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,17 +32,17 @@ class MutableStateValidationTest {
                     state.copy(map = map)
                 } else state
             }
-        val store = BaseStoreNine(initialState = initialState,
+        val store = BaseStoreEight(initialState = initialState,
             config = storeConfig,
             reduce = reduce,
             middlewares = null)
-        val viewModel = BaseViewModelNine(initialState = initialState, store = store)
+        val viewModel = BaseViewModelEight(initialState = initialState, store = store)
         viewModel.dispatch(UpdateDataAction(Pair("1", "two")))
     }
 
     @Test
     fun immutableStateShouldNotFail() {
         val initialState = StateWithImmutableMap(map = mapOf("2" to "two"))
-        BaseViewModelNine(initialState = initialState, reduce = { action, state -> state })
+        BaseViewModelEight(initialState = initialState, reduce = { action, state -> state })
     }
 }

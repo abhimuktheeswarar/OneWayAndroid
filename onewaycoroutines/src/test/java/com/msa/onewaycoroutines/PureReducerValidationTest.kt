@@ -1,10 +1,11 @@
 package com.msa.onewaycoroutines
 
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.nine.BaseStoreNine
+import com.msa.onewaycoroutines.base.eight.BaseStoreEight
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.entities.CounterAction
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.Rule
@@ -19,13 +20,14 @@ class PureReducerValidationTest {
     @Suppress("DEPRECATION")
     var thrown = ExpectedException.none()!!
 
-    private fun <S : State> getStore(initialState: S, reduce: Reduce<S>): BaseStoreNine<S> {
+    @ExperimentalCoroutinesApi
+    private fun <S : State> getStore(initialState: S, reduce: Reduce<S>): BaseStoreEight<S> {
         val storeConfig =
             StoreConfig(
                 scope = TestCoroutineScope(TestCoroutineDispatcher()),
                 debugMode = true,
                 synchronous = true)
-        return BaseStoreNine(initialState,
+        return BaseStoreEight(initialState,
             reduce = reduce,
             config = storeConfig,
             middlewares = null)

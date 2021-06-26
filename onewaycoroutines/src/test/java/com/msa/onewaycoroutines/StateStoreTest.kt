@@ -1,7 +1,7 @@
 package com.msa.onewaycoroutines
 
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.nine.BaseStoreNine
+import com.msa.onewaycoroutines.base.eight.BaseStoreEight
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.entities.CounterAction
@@ -32,13 +32,13 @@ class StateStoreTest {
         }
     }
 
-    private fun getStore(reduce: Reduce<TestState> = this.reduce): BaseStoreNine<TestState> {
+    private fun getStore(reduce: Reduce<TestState> = this.reduce): BaseStoreEight<TestState> {
         val storeConfig =
             StoreConfig(
                 scope = TestCoroutineScope(TestCoroutineDispatcher()),
                 debugMode = false,
                 synchronous = true)
-        return BaseStoreNine(initialState = TestState(),
+        return BaseStoreEight(initialState = TestState(),
             reduce = reduce,
             config = storeConfig,
             middlewares = null)

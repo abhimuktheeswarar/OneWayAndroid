@@ -7,6 +7,7 @@ import com.msa.onewaycoroutines.base.ExceededTimeLimitToComputeNewStatException
 import com.msa.onewaycoroutines.common.Middleware
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
+import com.msa.onewaycoroutines.common.StoreReducerExceededTimeLimitAction
 import com.msa.onewaycoroutines.utilities.MutableStateChecker
 import com.msa.onewaycoroutines.utilities.assertStateValues
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +18,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlin.system.measureTimeMillis
@@ -31,7 +31,7 @@ private fun <S : State> CoroutineScope.stateMachine(
     inputActions: ReceiveChannel<Action>,
     requestStates: ReceiveChannel<Unit>,
     sendStates: SendChannel<S>,
-    setStates: MutableStateFlow<S>,
+    setStates: MutableSharedFlow<S>,
     coldActions: MutableSharedFlow<Action>,
     reduce: Reduce<S>,
     config: StoreConfig,
@@ -46,9 +46,12 @@ private fun <S : State> CoroutineScope.stateMachine(
             inputActions.onReceive { action ->
 
                 measureTimeMillis {
-                    //Log.d(TAG_STORE, "onReceive action = ${action.name()}")
-                    state = reduce(action, state)
-                    setStates.emit(state)
+                    //Log.d(TAG_STORE, "onReceive action = ${action.name()} | ${Thread.currentThread()}")
+                    val newState = reduce(action, state)
+                    if (newState != state) {
+                        state = newState
+                        setStates.emit(state)
+                    }
                     coldActions.emit(action)
                 }.let { timeTakenToComputeNewState ->
                     //Log.i(TAG_STORE, "Took ${timeTakenToComputeNewState}ms for ${action.name()} | $state")
@@ -56,9 +59,9 @@ private fun <S : State> CoroutineScope.stateMachine(
                         val exception =
                             ExceededTimeLimitToComputeNewStatException("Took ${timeTakenToComputeNewState}ms for ${action.name()}")
                         if (config.debugMode) {
-                            //exception.printStackTrace()
+                            exception.printStackTrace()
                         } else {
-                            //coldActions.tryEmit(StoreReducerExceededTimeLimitAction(exception))
+                            coldActions.tryEmit(StoreReducerExceededTimeLimitAction(exception))
                         }
                     }
                 }
@@ -98,7 +101,11 @@ class BaseStoreEight<S : State>(
         onBufferOverflow = BufferOverflow.SUSPEND
     )
 
-    private val setStates: MutableStateFlow<S> = MutableStateFlow(initialState)
+    private val setStates: MutableSharedFlow<S> = MutableSharedFlow<S>(
+        replay = 1,
+        extraBufferCapacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.SUSPEND,
+    ).apply { tryEmit(initialState) }
 
     val states: Flow<S> = setStates
     val hotActions: Flow<Action> = mutableHotActions
@@ -138,7 +145,7 @@ class BaseStoreEight<S : State>(
         middlewares?.invoke(action) ?: dispatcher(action)
     }
 
-    fun state(): S = setStates.value
+    fun state(): S = setStates.replayCache.last()
 
     suspend fun awaitState(): S {
         requestStatesChannel.send(Unit)

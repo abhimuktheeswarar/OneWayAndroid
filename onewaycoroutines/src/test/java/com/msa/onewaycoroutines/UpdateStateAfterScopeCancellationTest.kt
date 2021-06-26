@@ -1,7 +1,7 @@
 package com.msa.onewaycoroutines
 
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.nine.BaseStoreNine
+import com.msa.onewaycoroutines.base.eight.BaseStoreEight
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.entities.CounterAction
@@ -33,13 +33,13 @@ class SetStateWithStateAfterScopeCancellationTest {
                 scope = scope,
                 debugMode = false)
         val store =
-            BaseStoreNine(initialState = TestState(),
+            BaseStoreEight(initialState = TestState(),
                 reduce = reduce,
                 config = storeConfig,
                 middlewares = null)
         store.dispatch(CounterAction.ForceUpdateAction(4))
         // ensure set operation above is ignored
-        val count = store.state.count
+        val count = store.state().count
         assertEquals(1, count)
     }
 }

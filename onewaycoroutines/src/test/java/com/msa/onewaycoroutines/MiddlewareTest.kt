@@ -1,14 +1,15 @@
 package com.msa.onewaycoroutines
 
 import com.msa.core.State
-import com.msa.onewaycoroutines.base.nine.BaseStoreNine
+import com.msa.onewaycoroutines.base.eight.BaseStoreEight
 import com.msa.onewaycoroutines.common.Middleware
 import com.msa.onewaycoroutines.common.Reduce
 import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.entities.CounterAction
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineScope
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -61,13 +62,13 @@ class MiddlewareTest {
         }
     }
 
-    private fun getStore(): BaseStoreNine<TestState> {
+    private fun getStore(): BaseStoreEight<TestState> {
         val storeConfig =
             StoreConfig(
-                scope = TestCoroutineScope(),
+                scope = CoroutineScope(Job()),
                 debugMode = false,
                 synchronous = false)
-        return BaseStoreNine(initialState = TestState(),
+        return BaseStoreEight(initialState = TestState(),
             reduce = reduce,
             config = storeConfig,
             middlewares = listOf(plainMiddleware, dispatchingMiddleware))
@@ -78,8 +79,8 @@ class MiddlewareTest {
         val store = getStore()
         store.dispatch(CounterAction.IncrementAction)
         store.dispatch(CounterAction.DecrementAction)
-        assertEquals(5, store.state.count)
+        assertEquals(5, store.awaitState().count)
         store.dispatch(CounterAction.ResetAction)
-        assertEquals(0, store.state.count)
+        assertEquals(0, store.awaitState().count)
     }
 }

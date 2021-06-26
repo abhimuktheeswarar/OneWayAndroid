@@ -7,6 +7,7 @@ import com.msa.onewaycoroutines.common.StoreConfig
 import com.msa.onewaycoroutines.entities.CounterAction
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import org.junit.Assert
@@ -16,7 +17,7 @@ import org.junit.Test
  * Created by Abhi Muktheeswarar on 16-June-2021.
  */
 
-class StateStoreReplayTest {
+class ColdSideEffectReplayTest {
 
     data class TestState(val count: Int = 0) : State
 
@@ -25,13 +26,11 @@ class StateStoreReplayTest {
         repeat(1) {
             singleReplayTestIteration(N = 200, subscribers = 1)
         }
-        Unit
     }
 
     @Test
     fun replayLargeTest() = runBlocking {
         singleReplayTestIteration(N = 100_000, subscribers = 10)
-        Unit
     }
 
     /**
@@ -73,7 +72,8 @@ class StateStoreReplayTest {
                     launch {
                         // Since only increase by 1 reducers are applied
                         // it's expected to see monotonously increasing sequence with no missing values
-                        store.states.takeWhile { it.count < N }.toList().zipWithNext { a, b ->
+                        store.coldActions.map { store.awaitState() }.takeWhile { it.count < N }
+                            .toList().zipWithNext { a, b ->
                             Assert.assertEquals(a.count + 1, b.count)
                         }
                     }
@@ -107,7 +107,7 @@ class StateStoreReplayTest {
                 middlewares = null)
 
         val collectJob = async(start = CoroutineStart.UNDISPATCHED) {
-            store.states.collect {
+            store.coldActions.map { store.state() }.collect {
                 delay(Long.MAX_VALUE)
             }
         }
@@ -116,7 +116,7 @@ class StateStoreReplayTest {
         val N = 200
         coroutineScope {
             async(start = CoroutineStart.UNDISPATCHED) {
-                store.states.takeWhile { it.count < N }.collect {
+                store.coldActions.map { store.state() }.takeWhile { it.count < N }.collect {
                     // no-op
                 }
             }
