@@ -1,3 +1,5 @@
+A pure Java based Redux inspired library.
+
 ## License
 
 
